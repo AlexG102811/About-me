@@ -106,6 +106,37 @@ a {
   font-size: 11px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 23px;
+}
+
+.settings-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+}
+
+.settings-trigger span {
+  color: var(--lime);
+  font-size: 13px;
+}
+
+.settings-trigger:hover {
+  border-color: var(--lime);
+  background: var(--lime);
+  color: var(--dark);
+}
+
 .header-link span,
 .text-link span {
   margin-left: 7px;
@@ -645,6 +676,171 @@ h2 em {
   font-size: 10px;
 }
 
+.settings-layer[hidden] {
+  display: none;
+}
+
+.settings-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+}
+
+.settings-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: rgba(0, 0, 0, 0.7);
+  cursor: default;
+}
+
+.settings-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(470px, 100%);
+  height: 100%;
+  overflow-y: auto;
+  padding: 43px 40px;
+  color: var(--ink);
+  background: #111614;
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.28);
+  transform: translateX(100%);
+  transition: transform 240ms ease;
+}
+
+.settings-layer.is-open .settings-panel {
+  transform: translateX(0);
+}
+
+.settings-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 25px;
+  padding-bottom: 25px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-kicker {
+  margin-bottom: 11px;
+  color: var(--lime);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 500;
+  letter-spacing: -0.065em;
+}
+
+.settings-close {
+  width: 33px;
+  height: 33px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: transparent;
+  font-size: 25px;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.settings-close:hover {
+  border-color: var(--lime);
+  color: var(--lime);
+}
+
+.settings-description {
+  margin: 24px 0 25px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+#profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+#profile-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+#profile-form input,
+#profile-form textarea {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  outline: none;
+  color: var(--ink);
+  background: #090b0a;
+  font: 14px/1.45 var(--sans);
+  resize: vertical;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+#profile-form input:focus,
+#profile-form textarea:focus {
+  border-color: var(--lime);
+  box-shadow: 0 0 0 2px rgba(216, 243, 106, 0.12);
+}
+
+.settings-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.settings-form-actions .button {
+  min-width: 165px;
+}
+
+.settings-reset {
+  border: 0;
+  padding: 8px 0;
+  color: var(--muted);
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.settings-reset:hover {
+  color: var(--lime);
+}
+
+.settings-status {
+  min-height: 18px;
+  margin: 1px 0 0;
+  color: var(--lime);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+body.settings-open {
+  overflow: hidden;
+}
+
 @media (max-width: 800px) {
   .section-wrap,
   .site-header {
@@ -680,6 +876,14 @@ h2 em {
 
   .header-link {
     display: none;
+  }
+
+  .header-actions {
+    margin-left: auto;
+  }
+
+  .settings-trigger {
+    padding: 8px 9px;
   }
 
   .menu-toggle {
@@ -811,6 +1015,14 @@ h2 em {
     flex-wrap: wrap;
     gap: 10px;
     padding: 21px 0;
+  }
+
+  .settings-panel {
+    padding: 30px 22px;
+  }
+
+  .settings-header h2 {
+    font-size: 32px;
   }
 }
 

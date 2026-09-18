@@ -36,15 +36,20 @@
           <a href="#contact">Contact</a>
         </nav>
 
-        <a class="header-link" href="#contact">Let’s talk <span aria-hidden="true">↗</span></a>
+        <div class="header-actions">
+          <a class="header-link" href="#contact">Let’s talk <span aria-hidden="true">↗</span></a>
+          <button class="settings-trigger" type="button" aria-controls="settings-panel" aria-expanded="false">
+            Edit profile <span aria-hidden="true">✦</span>
+          </button>
+        </div>
       </header>
 
       <main id="top">
         <section class="hero section-wrap" aria-labelledby="hero-title">
           <div class="hero-copy">
-            <p class="eyebrow"><span class="eyebrow-dot"></span> Available for select projects</p>
+            <p class="eyebrow"><span class="eyebrow-dot"></span> <span data-profile="availability">Available for select projects</span></p>
             <h1 id="hero-title">Making useful things feel <em>human.</em></h1>
-            <p class="hero-intro">
+            <p class="hero-intro" data-profile="intro">
               I’m a designer and builder who turns complex ideas into clear,
               considered digital experiences.
             </p>
@@ -76,9 +81,9 @@
             <h2 id="about-title">Good work lives somewhere between <span>curiosity</span> and clarity.</h2>
             <div class="about-details">
               <p>
-                I care about the details people feel but don’t always notice:
+                <span data-profile="about">I care about the details people feel but don’t always notice:
                 the right words, the natural interaction, the moment a product
-                simply makes sense.
+                simply makes sense.</span>
               </p>
               <p>
                 When I’m not designing, you’ll usually find me collecting
@@ -161,8 +166,8 @@
                 <span>Get in touch</span>
               </div>
               <h2 id="contact-title">Have a good idea?<br /><em>Let’s make it real.</em></h2>
-              <p>I’m always open to a thoughtful conversation, a new collaboration, or a great excuse to make something.</p>
-              <a class="button button-light" href="mailto:hello@example.com">Say hello <span aria-hidden="true">↗</span></a>
+              <p data-profile="contactNote">I’m always open to a thoughtful conversation, a new collaboration, or a great excuse to make something.</p>
+              <a class="button button-light" data-profile-email-link href="mailto:hello@example.com">Say hello <span aria-hidden="true">↗</span></a>
             </div>
             <div class="contact-mark" aria-hidden="true">
               <span>✳</span>
@@ -174,10 +179,55 @@
       </main>
 
       <footer class="site-footer section-wrap">
-        <span>© <span id="year"></span> Your Name</span>
+        <span>© <span id="year"></span> <span data-profile="footerName">Your Name</span></span>
         <span>Designed with care, built for the web.</span>
         <a href="#top">Back to top ↑</a>
       </footer>
+    </div>
+
+    <div class="settings-layer" id="settings-layer" hidden>
+      <button class="settings-backdrop" type="button" aria-label="Close profile settings"></button>
+      <aside class="settings-panel" id="settings-panel" aria-labelledby="settings-title" aria-hidden="true">
+        <div class="settings-header">
+          <div>
+            <p class="settings-kicker">Personal details</p>
+            <h2 id="settings-title">Edit your profile</h2>
+          </div>
+          <button class="settings-close" type="button" aria-label="Close profile settings">×</button>
+        </div>
+        <p class="settings-description">These details update the homepage instantly and are saved in this browser.</p>
+        <form id="profile-form">
+          <label>
+            Display name
+            <input name="name" type="text" autocomplete="name" required />
+          </label>
+          <label>
+            Availability line
+            <input name="availability" type="text" maxlength="60" required />
+          </label>
+          <label>
+            Short introduction
+            <textarea name="intro" rows="3" maxlength="220" required></textarea>
+          </label>
+          <label>
+            About you
+            <textarea name="about" rows="4" maxlength="300" required></textarea>
+          </label>
+          <label>
+            Contact note
+            <textarea name="contactNote" rows="3" maxlength="220" required></textarea>
+          </label>
+          <label>
+            Email address
+            <input name="email" type="email" autocomplete="email" required />
+          </label>
+          <div class="settings-form-actions">
+            <button class="button button-primary" type="submit">Save changes <span aria-hidden="true">↗</span></button>
+            <button class="settings-reset" type="button">Reset defaults</button>
+          </div>
+          <p class="settings-status" role="status" aria-live="polite"></p>
+        </form>
+      </aside>
     </div>
 
     <script src="script.js"></script>
