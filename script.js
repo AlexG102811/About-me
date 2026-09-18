@@ -7,7 +7,7 @@ const profileForm = document.querySelector("#profile-form");
 const settingsStatus = document.querySelector(".settings-status");
 
 const profileDefaults = {
-  name: "Your Name",
+  name: "Alex Gomez Ewert",
   availability: "Available for select projects",
   intro: "I’m a designer and builder who turns complex ideas into clear, considered digital experiences.",
   about: "I care about the details people feel but don’t always notice: the right words, the natural interaction, the moment a product simply makes sense.",
@@ -18,7 +18,9 @@ const profileDefaults = {
 const getSavedProfile = () => {
   try {
     const saved = JSON.parse(localStorage.getItem("about-me-profile"));
-    return saved ? { ...profileDefaults, ...saved } : { ...profileDefaults };
+    const profile = saved ? { ...profileDefaults, ...saved } : { ...profileDefaults };
+    if (profile.name === "Your Name") profile.name = profileDefaults.name;
+    return profile;
   } catch {
     return { ...profileDefaults };
   }
@@ -26,7 +28,7 @@ const getSavedProfile = () => {
 
 const getInitials = (name) => {
   const parts = name.trim().split(/\s+/).filter(Boolean);
-  return (parts.slice(0, 2).map((part) => part[0]).join("") || "YN").toUpperCase();
+  return (parts.slice(0, 3).map((part) => part[0]).join("") || "AGE").toUpperCase();
 };
 
 const renderProfile = (profile) => {
