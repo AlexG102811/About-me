@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A small collection of things to watch, listen to, and read."
+    />
+    <title>Media — Alex Gomez Ewert</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="sports.css" />
+    <link rel="stylesheet" href="media.css" />
+  </head>
+  <body class="media-page">
+    <div class="sports-shell">
+      <header class="sports-header">
+        <a class="sports-brand" href="index.html" aria-label="Alex Gomez Ewert home">
+          <span class="sports-brand-mark">AGE</span>
+          <span class="sports-brand-name">Alex Gomez Ewert</span>
+        </a>
+
+        <button
+          class="sports-menu-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="media-nav"
+          aria-label="Open navigation"
+        >
+          <span></span>
+          <span></span>
+        </button>
+
+        <nav class="sports-nav" id="media-nav" aria-label="Media page navigation">
+          <a href="index.html">Home</a>
+          <a href="sports.html">Sports</a>
+          <a class="is-current" href="media.html">Media</a>
+          <a href="index.html#about">About</a>
+        </nav>
+
+        <a class="sports-header-link" href="index.html#contact">Back to portfolio <span aria-hidden="true">↗</span></a>
+      </header>
+
+      <main>
+        <section class="sports-hero media-hero" aria-labelledby="media-title">
+          <div class="sports-hero-copy">
+            <p class="sports-eyebrow"><span></span> Stay curious</p>
+            <h1 id="media-title">Keep<br /><em>looking.</em></h1>
+            <p class="sports-lede">
+              A place for the stories, sounds, images, and ideas that make the
+              world feel a little bigger.
+            </p>
+            <a class="sports-button" href="#explore">Browse media <span aria-hidden="true">↓</span></a>
+          </div>
+          <div class="sports-hero-art media-hero-art" aria-label="Abstract illustration of a glowing media screen" role="img">
+            <div class="media-hero-frame">
+              <span class="media-hero-dot"></span>
+              <span class="media-hero-dot"></span>
+              <span class="media-hero-dot"></span>
+              <div class="media-hero-screen">NOW<br />PLAYING</div>
+            </div>
+            <div class="media-hero-note">Make room<br />for wonder.</div>
+            <span class="sports-art-number">01 / 04</span>
+          </div>
+        </section>
+
+        <section class="sports-intro" aria-label="Media page introduction">
+          <p class="sports-section-label"><span>01</span> The good stuff</p>
+          <div class="sports-intro-copy">
+            <h2>Follow the thread.<br /><em>See where it leads.</em></h2>
+            <p>
+              Not everything has to be useful. Some things just need to be
+              beautiful, surprising, or good enough to make you lose track of time.
+            </p>
+          </div>
+        </section>
+
+        <section class="sport-explore media-explore" id="explore" aria-labelledby="explore-media-title">
+          <div class="sport-section-heading">
+            <div>
+              <p class="sports-section-label"><span>02</span> Choose a frequency</p>
+              <h2 id="explore-media-title">What’s<br /><em>on.</em></h2>
+            </div>
+            <div class="sport-filters" role="group" aria-label="Filter media">
+              <button class="sport-filter is-active" type="button" data-filter="all" aria-pressed="true">All</button>
+              <button class="sport-filter" type="button" data-filter="watch" aria-pressed="false">Watch</button>
+              <button class="sport-filter" type="button" data-filter="listen" aria-pressed="false">Listen</button>
+              <button class="sport-filter" type="button" data-filter="read" aria-pressed="false">Read</button>
+            </div>
+          </div>
+
+          <div class="sport-grid">
+            <article class="sport-card media-card" data-sport="watch">
+              <div class="sport-card-art media-card-art media-card-film">
+                <span class="sport-card-label">Watch / 01</span>
+                <div class="media-film-shape">
+                  <span></span>
+                  <strong>SCENE<br />ONE</strong>
+                </div>
+                <span class="sport-card-symbol">↗</span>
+              </div>
+              <div class="sport-card-info">
+                <div>
+                  <h3>Film &amp; TV</h3>
+                  <p>Stories in motion.</p>
+                </div>
+                <span class="sport-card-index">01</span>
+              </div>
+            </article>
+
+            <article class="sport-card media-card" data-sport="listen">
+              <div class="sport-card-art media-card-art media-card-music">
+                <span class="sport-card-label">Listen / 02</span>
+                <div class="media-record-shape"><span></span></div>
+                <span class="sport-card-symbol">↗</span>
+              </div>
+              <div class="sport-card-info">
+                <div>
+                  <h3>Music</h3>
+                  <p>Press play, stay awhile.</p>
+                </div>
+                <span class="sport-card-index">02</span>
+              </div>
+            </article>
+
+            <article class="sport-card media-card" data-sport="read">
+              <div class="sport-card-art media-card-art media-card-books">
+                <span class="sport-card-label">Read / 03</span>
+                <div class="media-book-shape"><span>TAKE<br />YOUR<br />TIME</span></div>
+                <span class="sport-card-symbol">↗</span>
+              </div>
+              <div class="sport-card-info">
+                <div>
+                  <h3>Books &amp; essays</h3>
+                  <p>Ideas worth carrying.</p>
+                </div>
+                <span class="sport-card-index">03</span>
+              </div>
+            </article>
+
+            <article class="sport-card media-card" data-sport="listen">
+              <div class="sport-card-art media-card-art media-card-podcasts">
+                <span class="sport-card-label">Listen / 04</span>
+                <div class="media-podcast-shape">
+                  <span class="media-podcast-ring"></span>
+                  <span class="media-podcast-bar"></span>
+                </div>
+                <span class="sport-card-symbol">↗</span>
+              </div>
+              <div class="sport-card-info">
+                <div>
+                  <h3>Podcasts</h3>
+                  <p>Good questions, better company.</p>
+                </div>
+                <span class="sport-card-index">04</span>
+              </div>
+            </article>
+          </div>
+          <p class="sport-empty" aria-live="polite" hidden>Nothing in this frequency yet.</p>
+        </section>
+
+        <section class="sports-ritual media-rotation" aria-labelledby="rotation-title">
+          <div class="ritual-heading">
+            <p class="sports-section-label"><span>03</span> Current rotation</p>
+            <h2 id="rotation-title">A little<br /><em>inspiration.</em></h2>
+          </div>
+          <div class="ritual-list">
+            <div class="ritual-row">
+              <span class="ritual-day">Watch</span>
+              <strong>Something unexpected</strong>
+              <span>Tonight / 90 min</span>
+            </div>
+            <div class="ritual-row">
+              <span class="ritual-day">Listen</span>
+              <strong>A new point of view</strong>
+              <span>On the move / 45 min</span>
+            </div>
+            <div class="ritual-row">
+              <span class="ritual-day">Read</span>
+              <strong>One more chapter</strong>
+              <span>Before bed / 20 min</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="sports-cta media-cta" aria-labelledby="media-cta-title">
+          <p class="sports-section-label sports-section-label-light"><span>04</span> Keep exploring</p>
+          <h2 id="media-cta-title">There’s always<br /><em>more to discover.</em></h2>
+          <a class="sports-button sports-button-light" href="index.html#contact">Say hello <span aria-hidden="true">↗</span></a>
+        </section>
+      </main>
+
+      <footer class="sports-footer">
+        <span>© <span id="media-year"></span> Alex Gomez Ewert</span>
+        <a href="index.html">Back home ↑</a>
+      </footer>
+    </div>
+
+    <script src="media.js"></script>
+  </body>
+</html>

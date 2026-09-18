@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A sports page for finding your rhythm, tracking the week, and staying in motion."
+    />
+    <title>Sports — Alex Gomez Ewert</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="sports.css" />
+  </head>
+  <body>
+    <div class="sports-shell">
+      <header class="sports-header">
+        <a class="sports-brand" href="index.html" aria-label="Alex Gomez Ewert home">
+          <span class="sports-brand-mark">AGE</span>
+          <span class="sports-brand-name">Alex Gomez Ewert</span>
+        </a>
+
+        <button
+          class="sports-menu-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="sports-nav"
+          aria-label="Open navigation"
+        >
+          <span></span>
+          <span></span>
+        </button>
+
+        <nav class="sports-nav" id="sports-nav" aria-label="Sports page navigation">
+          <a href="index.html">Home</a>
+          <a class="is-current" href="sports.html">Sports</a>
+          <a href="media.html">Media</a>
+          <a href="index.html#about">About</a>
+        </nav>
+
+        <a class="sports-header-link" href="index.html#contact">Back to portfolio <span aria-hidden="true">↗</span></a>
+      </header>
+
+      <main>
+        <section class="sports-hero" aria-labelledby="sports-title">
+          <div class="sports-hero-copy">
+            <p class="sports-eyebrow"><span></span> Find your rhythm</p>
+            <h1 id="sports-title">Move with<br /><em>intention.</em></h1>
+            <p class="sports-lede">
+              A corner for the games, rituals, and small wins that keep us moving.
+              Pick a sport and make some space for play.
+            </p>
+            <a class="sports-button" href="#explore">Explore sports <span aria-hidden="true">↓</span></a>
+          </div>
+          <div class="sports-hero-art" aria-label="Abstract illustration of a basketball on a court" role="img">
+            <div class="court-line court-line-one"></div>
+            <div class="court-line court-line-two"></div>
+            <div class="sports-ball"></div>
+            <div class="sports-art-note">Keep<br />showing up.</div>
+            <span class="sports-art-number">01 / 04</span>
+          </div>
+        </section>
+
+        <section class="sports-intro" aria-label="Sports page introduction">
+          <p class="sports-section-label"><span>01</span> The weekly rhythm</p>
+          <div class="sports-intro-copy">
+            <h2>There is no perfect pace.<br /><em>Just the next one.</em></h2>
+            <p>
+              Whether it’s a packed stadium, an empty court, or a quiet run
+              before the day starts, movement gives the week a shape.
+            </p>
+          </div>
+        </section>
+
+        <section class="sport-explore" id="explore" aria-labelledby="explore-title">
+          <div class="sport-section-heading">
+            <div>
+              <p class="sports-section-label"><span>02</span> Choose your lane</p>
+              <h2 id="explore-title">Explore<br /><em>sports.</em></h2>
+            </div>
+            <div class="sport-filters" role="group" aria-label="Filter sports">
+              <button class="sport-filter is-active" type="button" data-filter="all" aria-pressed="true">All</button>
+              <button class="sport-filter" type="button" data-filter="court" aria-pressed="false">Court</button>
+              <button class="sport-filter" type="button" data-filter="field" aria-pressed="false">Field</button>
+              <button class="sport-filter" type="button" data-filter="individual" aria-pressed="false">Individual</button>
+            </div>
+          </div>
+
+          <div class="sport-grid">
+            <article class="sport-card sport-card-basketball" data-sport="court">
+              <div class="sport-card-art">
+                <span class="sport-card-label">Court / 01</span>
+                <div class="basketball-shape"></div>
+                <span class="sport-card-symbol">↗</span>
+              </div>
+              <div class="sport-card-info">
+                <div>
+                  <h3>Basketball</h3>
+                  <p>Find the open space.</p>
+                </div>
+                <span class="sport-card-index">01</span>
+              </div>
+            </article>
+
+            <article class="sport-card sport-card-football" data-sport="field">
+              <div class="sport-card-art">
+                <span class="sport-card-label">Field / 02</span>
+                <div class="football-shape"></div>
+                <span class="sport-card-symbol">↗</span>
+              </div>
+              <div class="sport-card-info">
+                <div>
+                  <h3>Football</h3>
+                  <p>Play the long game.</p>
+                </div>
+                <span class="sport-card-index">02</span>
+              </div>
+            </article>
+
+            <article class="sport-card sport-card-tennis" data-sport="court">
+              <div class="sport-card-art">
+                <span class="sport-card-label">Court / 03</span>
+                <div class="tennis-shape"></div>
+                <span class="sport-card-symbol">↗</span>
+              </div>
+              <div class="sport-card-info">
+                <div>
+                  <h3>Tennis</h3>
+                  <p>Meet the moment.</p>
+                </div>
+                <span class="sport-card-index">03</span>
+              </div>
+            </article>
+
+            <article class="sport-card sport-card-running" data-sport="individual">
+              <div class="sport-card-art">
+                <span class="sport-card-label">Individual / 04</span>
+                <div class="running-shape">RUN<br />YOUR<br />WAY</div>
+                <span class="sport-card-symbol">↗</span>
+              </div>
+              <div class="sport-card-info">
+                <div>
+                  <h3>Running</h3>
+                  <p>One foot, then the other.</p>
+                </div>
+                <span class="sport-card-index">04</span>
+              </div>
+            </article>
+          </div>
+          <p class="sport-empty" aria-live="polite" hidden>No sports in this lane yet.</p>
+        </section>
+
+        <section class="sports-ritual" aria-labelledby="ritual-title">
+          <div class="ritual-heading">
+            <p class="sports-section-label"><span>03</span> Build a ritual</p>
+            <h2 id="ritual-title">Make time<br /><em>to move.</em></h2>
+          </div>
+          <div class="ritual-list">
+            <div class="ritual-row">
+              <span class="ritual-day">Monday</span>
+              <strong>Start small</strong>
+              <span>20 min / easy pace</span>
+            </div>
+            <div class="ritual-row">
+              <span class="ritual-day">Wednesday</span>
+              <strong>Find your people</strong>
+              <span>Pick-up / open play</span>
+            </div>
+            <div class="ritual-row">
+              <span class="ritual-day">Saturday</span>
+              <strong>Go a little longer</strong>
+              <span>Whatever feels good</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="sports-cta" aria-labelledby="sports-cta-title">
+          <p class="sports-section-label sports-section-label-light"><span>04</span> Keep going</p>
+          <h2 id="sports-cta-title">The best game<br /><em>is the next one.</em></h2>
+          <a class="sports-button sports-button-light" href="index.html#contact">Say hello <span aria-hidden="true">↗</span></a>
+        </section>
+      </main>
+
+      <footer class="sports-footer">
+        <span>© <span id="sports-year"></span> Alex Gomez Ewert</span>
+        <a href="index.html">Back home ↑</a>
+      </footer>
+    </div>
+
+    <script src="sports.js"></script>
+  </body>
+</html>
