@@ -1,10 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap");
 
 :root {
-  --ink: #18211f;
-  --muted: #66706d;
-  --paper: #f5f4ef;
-  --line: #d8d9d1;
+  --ink: #f5f3eb;
+  --muted: #aeb6b0;
+  --paper: #090b0a;
+  --line: #2d3531;
   --lime: #d8f36a;
   --sage: #b9d1ad;
   --coral: #f3a28b;
@@ -212,7 +212,7 @@ h2 em {
 }
 
 .button-primary {
-  color: var(--ink);
+  color: var(--dark);
   background: var(--lime);
 }
 
@@ -289,7 +289,7 @@ h2 em {
   width: 47%;
   height: 45%;
   padding: 20px;
-  color: var(--paper);
+  color: var(--ink);
   background: var(--dark);
 }
 
