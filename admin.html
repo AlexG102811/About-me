@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A local admin dashboard for managing the personal site."
+    />
+    <title>Admin dashboard — Alex Gomez Ewert</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <div class="admin-shell">
+      <aside class="admin-sidebar">
+        <a class="admin-brand" href="index.html" aria-label="Alex Gomez Ewert home">
+          <span class="admin-brand-mark">AGE</span>
+          <span class="admin-brand-name">Alex Gomez Ewert</span>
+        </a>
+        <div class="admin-sidebar-label">Workspace</div>
+        <nav class="admin-nav" aria-label="Admin navigation">
+          <a class="is-current" href="#overview"><span>↗</span> Overview</a>
+          <a href="#profile"><span>○</span> Profile</a>
+          <a href="#pages"><span>□</span> Pages</a>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <span class="admin-local-dot"></span>
+          <div>
+            <strong>Local workspace</strong>
+            <small>Saved in this browser</small>
+          </div>
+        </div>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-topbar">
+          <div>
+            <p class="admin-kicker">Personal site / Admin</p>
+            <h1>Good morning, <span data-admin-name>Alex</span>.</h1>
+          </div>
+          <div class="admin-top-actions">
+            <span class="admin-save-indicator"><span></span> All changes saved</span>
+            <a class="admin-view-site" href="index.html">View site <span aria-hidden="true">↗</span></a>
+          </div>
+        </header>
+
+        <section class="admin-overview" id="overview" aria-labelledby="overview-title">
+          <div class="admin-section-heading">
+            <div>
+              <p class="admin-section-label"><span>01</span> Overview</p>
+              <h2 id="overview-title">Your space<br /><em>at a glance.</em></h2>
+            </div>
+            <p class="admin-heading-note">A simple place to keep the important things current.</p>
+          </div>
+
+          <div class="admin-stat-grid">
+            <article class="admin-stat-card admin-stat-highlight">
+              <span class="admin-stat-label">Profile completion</span>
+              <strong>80<span>%</span></strong>
+              <div class="admin-progress"><span></span></div>
+              <small>Keep your story fresh.</small>
+            </article>
+            <article class="admin-stat-card">
+              <span class="admin-stat-label">Published pages</span>
+              <strong>03</strong>
+              <small>Home, Sports, Media</small>
+              <a href="#pages">Manage pages <span aria-hidden="true">→</span></a>
+            </article>
+            <article class="admin-stat-card">
+              <span class="admin-stat-label">Last updated</span>
+              <strong>Now</strong>
+              <small>Changes stay in this browser</small>
+              <a href="#profile">Edit profile <span aria-hidden="true">→</span></a>
+            </article>
+          </div>
+
+          <div class="admin-overview-grid">
+            <article class="admin-activity-card">
+              <div class="admin-card-heading">
+                <div>
+                  <p class="admin-section-label"><span>Recent</span> Activity</p>
+                  <h3>A quiet little log.</h3>
+                </div>
+                <span class="admin-card-mark">✳</span>
+              </div>
+              <div class="admin-activity-row">
+                <span class="activity-icon activity-icon-lime">✦</span>
+                <div><strong>Profile workspace ready</strong><small>Settings are connected to your site</small></div>
+                <time>Now</time>
+              </div>
+              <div class="admin-activity-row">
+                <span class="activity-icon activity-icon-coral">↗</span>
+                <div><strong>Media page published</strong><small>Watch, listen, and read sections</small></div>
+                <time>Today</time>
+              </div>
+              <div class="admin-activity-row">
+                <span class="activity-icon activity-icon-blue">○</span>
+                <div><strong>Sports page published</strong><small>Four sports and a weekly rhythm</small></div>
+                <time>Today</time>
+              </div>
+            </article>
+
+            <article class="admin-note-card">
+              <span class="admin-note-symbol">✳</span>
+              <p class="admin-section-label admin-section-label-dark"><span>Note to self</span></p>
+              <h3>Good work starts with making space.</h3>
+              <p>Update your profile below whenever something changes. Your homepage will reflect it instantly.</p>
+              <a class="admin-dark-link" href="#profile">Go to profile <span aria-hidden="true">↘</span></a>
+            </article>
+          </div>
+        </section>
+
+        <section class="admin-profile-section" id="profile" aria-labelledby="profile-title">
+          <div class="admin-section-heading">
+            <div>
+              <p class="admin-section-label"><span>02</span> Profile</p>
+              <h2 id="profile-title">Keep it<br /><em>personal.</em></h2>
+            </div>
+            <p class="admin-heading-note">These details appear across your homepage and page headers.</p>
+          </div>
+
+          <div class="admin-profile-grid">
+            <form class="admin-form" id="admin-profile-form">
+              <div class="admin-form-grid">
+                <label>
+                  Display name
+                  <input name="name" type="text" autocomplete="name" required />
+                </label>
+                <label>
+                  Email address
+                  <input name="email" type="email" autocomplete="email" required />
+                </label>
+              </div>
+              <label>
+                Availability line
+                <input name="availability" type="text" maxlength="60" required />
+              </label>
+              <label>
+                Short introduction
+                <textarea name="intro" rows="3" maxlength="220" required></textarea>
+              </label>
+              <label>
+                About you
+                <textarea name="about" rows="4" maxlength="300" required></textarea>
+              </label>
+              <label>
+                Contact note
+                <textarea name="contactNote" rows="3" maxlength="220" required></textarea>
+              </label>
+              <div class="admin-form-actions">
+                <button class="admin-button" type="submit">Save profile <span aria-hidden="true">↗</span></button>
+                <button class="admin-reset" type="button">Reset defaults</button>
+                <span class="admin-form-status" role="status" aria-live="polite"></span>
+              </div>
+            </form>
+            <aside class="admin-preview-card">
+              <p class="admin-section-label"><span>Preview</span> Homepage intro</p>
+              <div class="admin-preview-avatar" data-admin-initials>AGE</div>
+              <h3 data-admin-preview-name>Alex Gomez Ewert</h3>
+              <p data-admin-preview-intro>I’m a designer and builder who turns complex ideas into clear, considered digital experiences.</p>
+              <a href="index.html">Open homepage <span aria-hidden="true">↗</span></a>
+            </aside>
+          </div>
+        </section>
+
+        <section class="admin-pages-section" id="pages" aria-labelledby="pages-title">
+          <div class="admin-section-heading">
+            <div>
+              <p class="admin-section-label"><span>03</span> Pages</p>
+              <h2 id="pages-title">What’s<br /><em>live.</em></h2>
+            </div>
+          </div>
+          <div class="admin-page-list">
+            <a class="admin-page-row" href="index.html">
+              <span class="admin-page-icon admin-page-icon-lime">01</span>
+              <span><strong>Home</strong><small>Your personal introduction</small></span>
+              <span class="admin-page-status">Live <i></i></span>
+              <span class="admin-page-arrow">↗</span>
+            </a>
+            <a class="admin-page-row" href="sports.html">
+              <span class="admin-page-icon admin-page-icon-coral">02</span>
+              <span><strong>Sports</strong><small>Find your rhythm</small></span>
+              <span class="admin-page-status">Live <i></i></span>
+              <span class="admin-page-arrow">↗</span>
+            </a>
+            <a class="admin-page-row" href="media.html">
+              <span class="admin-page-icon admin-page-icon-violet">03</span>
+              <span><strong>Media</strong><small>Stay curious</small></span>
+              <span class="admin-page-status">Live <i></i></span>
+              <span class="admin-page-arrow">↗</span>
+            </a>
+          </div>
+        </section>
+
+        <footer class="admin-footer">
+          <span>© <span id="admin-year"></span> <span data-admin-footer-name>Alex Gomez Ewert</span></span>
+          <a href="index.html">Back to portfolio ↑</a>
+        </footer>
+      </main>
+    </div>
+
+    <script src="admin.js"></script>
+  </body>
+</html>
