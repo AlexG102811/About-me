@@ -1,0 +1,139 @@
+.media-page {
+  --media-violet: #cdb9e9;
+  --media-yellow: #f4e69a;
+}
+
+.media-hero-art {
+  background: var(--media-violet);
+}
+
+.media-hero-art::before {
+  right: -18%;
+  bottom: -28%;
+  width: 82%;
+  border-color: rgba(32, 51, 48, 0.35);
+}
+
+.media-hero-art::after {
+  position: absolute;
+  top: 19%;
+  left: 16%;
+  width: 62%;
+  height: 57%;
+  border: 2px solid var(--dark);
+  background: #1d2926;
+  box-shadow: 18px 18px 0 rgba(32, 51, 48, 0.16);
+  content: "";
+  transform: rotate(-7deg);
+}
+
+.media-hero-screen {
+  position: absolute;
+  right: 28%;
+  bottom: 32%;
+  z-index: 1;
+  color: var(--lime);
+  font-family: var(--serif);
+  font-size: clamp(28px, 4vw, 55px);
+  font-style: italic;
+  line-height: 0.87;
+  transform: rotate(-7deg);
+}
+
+.media-hero-note {
+  position: absolute;
+  right: 9%;
+  bottom: 10%;
+  color: var(--dark);
+  font-family: var(--serif);
+  font-size: 23px;
+  font-style: italic;
+  line-height: 0.94;
+  text-align: right;
+}
+
+.media-hero h1 em,
+.media-explore h2 em,
+.media-rotation h2 em,
+.media-cta h2 em {
+  color: var(--media-violet);
+}
+
+.media-card-film {
+  background: var(--media-violet);
+}
+
+.media-card-music {
+  background: var(--media-yellow);
+}
+
+.media-card-books {
+  background: var(--sage);
+}
+
+.media-card-podcasts {
+  background: var(--coral);
+}
+
+.media-film-shape,
+.media-book-shape {
+  display: grid;
+  place-items: center;
+  width: 55%;
+  height: 58%;
+  color: var(--lime);
+  background: var(--dark);
+  font-family: var(--serif);
+  font-size: clamp(20px, 3vw, 34px);
+  font-style: italic;
+  line-height: 0.85;
+  text-align: center;
+  transform: rotate(-7deg);
+}
+
+.media-record-shape {
+  width: 175px;
+  aspect-ratio: 1;
+  border: 18px solid var(--dark);
+  border-radius: 50%;
+  background: var(--media-yellow);
+  box-shadow: 12px 12px 0 rgba(32, 51, 48, 0.18);
+}
+
+.media-book-shape {
+  width: 145px;
+  height: 190px;
+  color: var(--dark);
+  border: 1px solid var(--dark);
+  background: var(--coral);
+  box-shadow: 13px 13px 0 rgba(32, 51, 48, 0.16);
+  transform: rotate(9deg);
+}
+
+.media-podcast-shape {
+  display: grid;
+  width: 145px;
+  height: 175px;
+  place-items: center;
+  border: 2px solid var(--dark);
+  border-radius: 75px 75px 20px 20px;
+  color: var(--dark);
+  background: var(--media-yellow);
+  font-size: 55px;
+}
+
+.media-cta {
+  background: var(--media-violet);
+}
+
+.media-cta h2,
+.media-cta h2 em {
+  color: var(--dark);
+}
+
+@media (max-width: 800px) {
+  .media-hero-art::after {
+    left: 13%;
+    width: 68%;
+  }
+}
