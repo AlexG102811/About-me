@@ -4,7 +4,9 @@ const mediaFilters = document.querySelectorAll(".sport-filter");
 const mediaCards = document.querySelectorAll(".media-card");
 const mediaEmpty = document.querySelector(".sport-empty");
 const mediaPhotoSlots = document.querySelectorAll("[data-photo-slot]");
+const mediaVideoSlots = document.querySelectorAll("[data-video-slot]");
 const mediaPhotoStorageKey = "about-me-media-photos";
+const mediaVideoStorageKey = "about-me-media-videos";
 
 mediaMenuToggle?.addEventListener("click", () => {
   const isOpen = mediaMenuToggle.classList.toggle("is-open");
@@ -62,6 +64,26 @@ const renderSavedPhotos = () => {
   });
 };
 
+const renderSavedVideos = () => {
+  let savedVideos = [];
+  try {
+    savedVideos = JSON.parse(localStorage.getItem(mediaVideoStorageKey)) || [];
+  } catch {
+    savedVideos = [];
+  }
+
+  mediaVideoSlots.forEach((slot, index) => {
+    const video = slot.querySelector("[data-video-preview]");
+    const savedVideo = savedVideos[index];
+    if (savedVideo) {
+      video.src = savedVideo;
+      video.hidden = false;
+      video.load();
+      slot.classList.add("has-video");
+    }
+  });
+};
+
 mediaPhotoSlots.forEach((slot) => {
   const input = slot.querySelector("[data-photo-input]");
   input?.addEventListener("change", () => {
@@ -93,7 +115,46 @@ mediaPhotoSlots.forEach((slot) => {
   });
 });
 
+mediaVideoSlots.forEach((slot) => {
+  const input = slot.querySelector("[data-video-input]");
+  const video = slot.querySelector("[data-video-preview]");
+
+  video?.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  input?.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      const slotIndex = Number(slot.dataset.videoSlot);
+      let savedVideos = [];
+      try {
+        savedVideos = JSON.parse(localStorage.getItem(mediaVideoStorageKey)) || [];
+      } catch {
+        savedVideos = [];
+      }
+
+      savedVideos[slotIndex] = reader.result;
+      try {
+        localStorage.setItem(mediaVideoStorageKey, JSON.stringify(savedVideos));
+      } catch {
+        // Keep the preview visible even if this browser cannot store the video.
+      }
+      video.src = reader.result;
+      video.hidden = false;
+      video.load();
+      slot.classList.add("has-video");
+      input.value = "";
+    });
+    reader.readAsDataURL(file);
+  });
+});
+
 renderSavedPhotos();
+renderSavedVideos();
 
 const savedProfile = (() => {
   try {

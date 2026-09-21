@@ -174,6 +174,114 @@
   display: none;
 }
 
+.media-videos-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 50px;
+  margin: 85px 0 38px;
+  padding-top: 42px;
+  border-top: 1px solid var(--line);
+}
+
+.media-videos-heading h3 {
+  margin: 24px 0 0;
+  font-size: clamp(36px, 4.5vw, 56px);
+  font-weight: 500;
+  line-height: 0.96;
+  letter-spacing: -0.08em;
+}
+
+.media-videos-heading h3 em {
+  color: var(--media-violet);
+}
+
+.media-videos-heading > p {
+  max-width: 275px;
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.media-video-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.media-video-slot {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #111614;
+  cursor: pointer;
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+
+.media-video-slot:nth-child(1) {
+  background: var(--coral);
+}
+
+.media-video-slot:nth-child(2) {
+  background: var(--sage);
+}
+
+.media-video-slot:hover {
+  border-color: var(--lime);
+  transform: translateY(-4px);
+}
+
+.media-video-slot input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.media-video-slot video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #111614;
+}
+
+.media-video-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--dark);
+}
+
+.media-video-placeholder strong {
+  margin-bottom: 18px;
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 0.7;
+}
+
+.media-video-placeholder span,
+.media-video-placeholder small {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.media-video-placeholder small {
+  margin-top: 7px;
+  opacity: 0.6;
+}
+
+.media-video-slot.has-video .media-video-placeholder {
+  display: none;
+}
+
 .media-card-film {
   background: var(--media-violet);
 }
@@ -266,6 +374,20 @@
 
   .media-photo-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .media-videos-heading {
+    display: block;
+    margin-top: 65px;
+  }
+
+  .media-videos-heading > p {
+    margin-top: 26px;
+  }
+
+  .media-video-grid {
+    grid-template-columns: 1fr;
     gap: 12px;
   }
 }
