@@ -53,10 +53,125 @@
 }
 
 .media-hero h1 em,
+.media-photos h2 em,
 .media-explore h2 em,
 .media-rotation h2 em,
 .media-cta h2 em {
   color: var(--media-violet);
+}
+
+.media-photos {
+  padding: 110px 0 142px;
+  border-top: 1px solid var(--line);
+}
+
+.media-photos-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 50px;
+  margin-bottom: 52px;
+}
+
+.media-photos-heading h2 {
+  margin: 28px 0 0;
+  font-size: clamp(44px, 5.5vw, 70px);
+  font-weight: 500;
+  line-height: 0.96;
+  letter-spacing: -0.08em;
+}
+
+.media-photos-heading > p {
+  max-width: 275px;
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.media-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.media-photo-slot {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #111614;
+  cursor: pointer;
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+
+.media-photo-slot:nth-child(1) {
+  background: var(--media-yellow);
+}
+
+.media-photo-slot:nth-child(2) {
+  background: var(--sage);
+}
+
+.media-photo-slot:nth-child(3) {
+  background: var(--coral);
+}
+
+.media-photo-slot:nth-child(4) {
+  background: var(--media-violet);
+}
+
+.media-photo-slot:hover {
+  border-color: var(--lime);
+  transform: translateY(-4px);
+}
+
+.media-photo-slot input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.media-photo-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-photo-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--dark);
+}
+
+.media-photo-placeholder strong {
+  margin-bottom: 18px;
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 0.7;
+}
+
+.media-photo-placeholder span,
+.media-photo-placeholder small {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.media-photo-placeholder small {
+  margin-top: 7px;
+  opacity: 0.6;
+}
+
+.media-photo-slot.has-photo .media-photo-placeholder {
+  display: none;
 }
 
 .media-card-film {
@@ -135,5 +250,22 @@
   .media-hero-art::after {
     left: 13%;
     width: 68%;
+  }
+
+  .media-photos {
+    padding: 85px 0 100px;
+  }
+
+  .media-photos-heading {
+    display: block;
+  }
+
+  .media-photos-heading > p {
+    margin-top: 30px;
+  }
+
+  .media-photo-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 }

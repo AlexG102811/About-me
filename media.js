@@ -3,6 +3,8 @@ const mediaNav = document.querySelector(".sports-nav");
 const mediaFilters = document.querySelectorAll(".sport-filter");
 const mediaCards = document.querySelectorAll(".media-card");
 const mediaEmpty = document.querySelector(".sport-empty");
+const mediaPhotoSlots = document.querySelectorAll("[data-photo-slot]");
+const mediaPhotoStorageKey = "about-me-media-photos";
 
 mediaMenuToggle?.addEventListener("click", () => {
   const isOpen = mediaMenuToggle.classList.toggle("is-open");
@@ -40,6 +42,58 @@ mediaFilters.forEach((filter) => {
     mediaEmpty.hidden = visibleCards > 0;
   });
 });
+
+const renderSavedPhotos = () => {
+  let savedPhotos = [];
+  try {
+    savedPhotos = JSON.parse(localStorage.getItem(mediaPhotoStorageKey)) || [];
+  } catch {
+    savedPhotos = [];
+  }
+
+  mediaPhotoSlots.forEach((slot, index) => {
+    const image = slot.querySelector("[data-photo-image]");
+    const photo = savedPhotos[index];
+    if (photo) {
+      image.src = photo;
+      image.hidden = false;
+      slot.classList.add("has-photo");
+    }
+  });
+};
+
+mediaPhotoSlots.forEach((slot) => {
+  const input = slot.querySelector("[data-photo-input]");
+  input?.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      const image = slot.querySelector("[data-photo-image]");
+      const slotIndex = Number(slot.dataset.photoSlot);
+      let savedPhotos = [];
+      try {
+        savedPhotos = JSON.parse(localStorage.getItem(mediaPhotoStorageKey)) || [];
+      } catch {
+        savedPhotos = [];
+      }
+
+      savedPhotos[slotIndex] = reader.result;
+      try {
+        localStorage.setItem(mediaPhotoStorageKey, JSON.stringify(savedPhotos));
+      } catch {
+        // Keep the preview visible even if this browser cannot store the image.
+      }
+      image.src = reader.result;
+      image.hidden = false;
+      slot.classList.add("has-photo");
+    });
+    reader.readAsDataURL(file);
+  });
+});
+
+renderSavedPhotos();
 
 const savedProfile = (() => {
   try {
