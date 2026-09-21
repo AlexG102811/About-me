@@ -1,11 +1,13 @@
 const adminDefaults = {
   name: "Alex Gomez Ewert",
   availability: "Available for select projects",
-  intro: "I’m a designer and builder who turns complex ideas into clear, considered digital experiences.",
+  intro: "I’m a high school student who plays baseball, loves gaming, and enjoys spending time with friends.",
   about: "I care about the details people feel but don’t always notice: the right words, the natural interaction, the moment a product simply makes sense.",
   contactNote: "I’m always open to a thoughtful conversation, a new collaboration, or a great excuse to make something.",
   email: "hello@example.com",
 };
+
+const previousIntroDefault = "I’m a designer and builder who turns complex ideas into clear, considered digital experiences.";
 
 const adminForm = document.querySelector("#admin-profile-form");
 const adminStatus = document.querySelector(".admin-form-status");
@@ -13,7 +15,9 @@ const adminStatus = document.querySelector(".admin-form-status");
 const loadAdminProfile = () => {
   try {
     const saved = JSON.parse(localStorage.getItem("about-me-profile"));
-    return saved ? { ...adminDefaults, ...saved } : { ...adminDefaults };
+    const profile = saved ? { ...adminDefaults, ...saved } : { ...adminDefaults };
+    if (profile.intro === previousIntroDefault) profile.intro = adminDefaults.intro;
+    return profile;
   } catch {
     return { ...adminDefaults };
   }

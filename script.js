@@ -9,17 +9,20 @@ const settingsStatus = document.querySelector(".settings-status");
 const profileDefaults = {
   name: "Alex Gomez Ewert",
   availability: "Available for select projects",
-  intro: "I’m a designer and builder who turns complex ideas into clear, considered digital experiences.",
+  intro: "I’m a high school student who plays baseball, loves gaming, and enjoys spending time with friends.",
   about: "I care about the details people feel but don’t always notice: the right words, the natural interaction, the moment a product simply makes sense.",
   contactNote: "I’m always open to a thoughtful conversation, a new collaboration, or a great excuse to make something.",
   email: "hello@example.com",
 };
+
+const previousIntroDefault = "I’m a designer and builder who turns complex ideas into clear, considered digital experiences.";
 
 const getSavedProfile = () => {
   try {
     const saved = JSON.parse(localStorage.getItem("about-me-profile"));
     const profile = saved ? { ...profileDefaults, ...saved } : { ...profileDefaults };
     if (profile.name === "Your Name") profile.name = profileDefaults.name;
+    if (profile.intro === previousIntroDefault) profile.intro = profileDefaults.intro;
     return profile;
   } catch {
     return { ...profileDefaults };
