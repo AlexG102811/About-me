@@ -66,11 +66,27 @@
             <div class="art-orbit art-orbit-one"></div>
             <div class="art-orbit art-orbit-two"></div>
             <div class="art-sun"></div>
-            <div class="art-card">
+            <label class="art-card" for="hero-image-input">
               <span class="art-card-label">Currently</span>
-              <strong>Making space<br />for good ideas.</strong>
+              <span class="art-card-image-placeholder">
+                <strong>Add a picture</strong>
+                <small>Click to upload</small>
+              </span>
+              <img
+                class="art-card-image"
+                data-hero-image
+                src=""
+                alt="Uploaded hero picture"
+                hidden
+              />
+              <input
+                id="hero-image-input"
+                type="file"
+                accept="image/*"
+                aria-label="Upload hero picture"
+              />
               <span class="art-card-arrow">↗</span>
-            </div>
+            </label>
             <span class="art-caption">A small corner<br />of the internet</span>
           </div>
         </section>

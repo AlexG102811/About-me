@@ -5,6 +5,11 @@ const settingsPanel = document.querySelector("#settings-panel");
 const settingsTrigger = document.querySelector(".settings-trigger");
 const profileForm = document.querySelector("#profile-form");
 const settingsStatus = document.querySelector(".settings-status");
+const artCard = document.querySelector(".art-card");
+const heroImageInput = document.querySelector("#hero-image-input");
+const heroImage = document.querySelector("[data-hero-image]");
+const heroImagePlaceholder = document.querySelector(".art-card-image-placeholder");
+const heroImageStorageKey = "about-me-hero-image";
 
 const profileDefaults = {
   name: "Alex Gomez Ewert",
@@ -66,6 +71,45 @@ const renderProfile = (profile) => {
 
 const profile = getSavedProfile();
 renderProfile(profile);
+
+const renderHeroImage = (imageData) => {
+  if (imageData) {
+    heroImage.src = imageData;
+    heroImage.hidden = false;
+    artCard.classList.add("has-image");
+    return;
+  }
+
+  heroImage.removeAttribute("src");
+  heroImage.hidden = true;
+  artCard.classList.remove("has-image");
+  heroImagePlaceholder.hidden = false;
+};
+
+let savedHeroImage = null;
+try {
+  savedHeroImage = localStorage.getItem(heroImageStorageKey);
+} catch {
+  savedHeroImage = null;
+}
+renderHeroImage(savedHeroImage);
+
+heroImageInput?.addEventListener("change", () => {
+  const file = heroImageInput.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      localStorage.setItem(heroImageStorageKey, reader.result);
+    } catch {
+      // Keep the preview visible even if this browser cannot store the image.
+    }
+    renderHeroImage(reader.result);
+    heroImageInput.value = "";
+  });
+  reader.readAsDataURL(file);
+});
 
 menuToggle?.addEventListener("click", () => {
   const isOpen = menuToggle.classList.toggle("is-open");

@@ -314,6 +314,7 @@ h2 em {
   position: absolute;
   right: 8%;
   bottom: 12%;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -324,8 +325,51 @@ h2 em {
   background: var(--dark);
 }
 
+.art-card-label,
+.art-card-image-placeholder,
+.art-card-arrow {
+  position: relative;
+  z-index: 1;
+}
+
 .art-card-label {
   color: var(--blue);
+}
+
+.art-card-image-placeholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.art-card-image-placeholder small {
+  margin-top: 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.art-card-image {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.art-card.has-image .art-card-image-placeholder {
+  display: none;
+}
+
+.art-card input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
 .art-card strong {
