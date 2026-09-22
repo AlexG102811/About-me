@@ -85,4 +85,142 @@ if (savedProfile?.name) {
   );
 }
 
+const baseballTrackerStorageKey = "about-me-baseball-tracker";
+const baseballGameFields = [
+  "atBats",
+  "hits",
+  "doubles",
+  "triples",
+  "homeRuns",
+  "walks",
+  "rbi",
+  "runs",
+  "stolenBases",
+  "strikeouts",
+];
+const baseballTrackerDefaults = {
+  player: savedProfile?.name || "Alex Gomez Ewert",
+  season: String(new Date().getFullYear()),
+  games: 0,
+  atBats: 0,
+  hits: 0,
+  doubles: 0,
+  triples: 0,
+  homeRuns: 0,
+  walks: 0,
+  rbi: 0,
+  runs: 0,
+  stolenBases: 0,
+  strikeouts: 0,
+};
+
+const loadBaseballTracker = () => {
+  let savedTracker = {};
+  try {
+    savedTracker = JSON.parse(localStorage.getItem(baseballTrackerStorageKey)) || {};
+  } catch {
+    savedTracker = {};
+  }
+
+  const tracker = { ...baseballTrackerDefaults, ...savedTracker };
+  tracker.player = String(tracker.player || baseballTrackerDefaults.player).trim();
+  tracker.season = String(tracker.season || baseballTrackerDefaults.season).trim();
+  ["games", ...baseballGameFields].forEach((field) => {
+    tracker[field] = Math.max(0, Number.parseInt(tracker[field], 10) || 0);
+  });
+  return tracker;
+};
+
+const saveBaseballTracker = (tracker) => {
+  try {
+    localStorage.setItem(baseballTrackerStorageKey, JSON.stringify(tracker));
+  } catch {
+    // Keep the current totals visible even if this browser cannot save them.
+  }
+};
+
+const trackerProfileForm = document.querySelector("#tracker-profile-form");
+const baseballGameForm = document.querySelector("#baseball-game-form");
+const trackerProfileStatus = document.querySelector("[data-tracker-profile-status]");
+const trackerGameStatus = document.querySelector("[data-tracker-game-status]");
+const tracker = loadBaseballTracker();
+
+const formatRate = (value) => value.toFixed(3).replace(/^0\./, ".");
+
+const renderBaseballTracker = () => {
+  const singles = Math.max(0, tracker.hits - tracker.doubles - tracker.triples - tracker.homeRuns);
+  const average = tracker.atBats ? tracker.hits / tracker.atBats : 0;
+  const obpDenominator = tracker.atBats + tracker.walks;
+  const obp = obpDenominator ? (tracker.hits + tracker.walks) / obpDenominator : 0;
+  const slg = tracker.atBats
+    ? (singles + tracker.doubles * 2 + tracker.triples * 3 + tracker.homeRuns * 4) / tracker.atBats
+    : 0;
+  const calculatedStats = {
+    ...tracker,
+    average: formatRate(average),
+    obp: formatRate(obp),
+    slg: formatRate(slg),
+    ops: formatRate(obp + slg),
+  };
+
+  document.querySelectorAll("[data-tracker-stat]").forEach((element) => {
+    element.textContent = calculatedStats[element.dataset.trackerStat];
+  });
+  document.querySelector("[data-tracker-player]").textContent = tracker.player;
+  document.querySelector("[data-tracker-season]").textContent = tracker.season;
+
+  if (trackerProfileForm) {
+    trackerProfileForm.elements.player.value = tracker.player;
+    trackerProfileForm.elements.season.value = tracker.season;
+  }
+};
+
+renderBaseballTracker();
+
+trackerProfileForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const profileDetails = Object.fromEntries(new FormData(trackerProfileForm).entries());
+  tracker.player = profileDetails.player.trim() || baseballTrackerDefaults.player;
+  tracker.season = profileDetails.season.trim() || baseballTrackerDefaults.season;
+  saveBaseballTracker(tracker);
+  renderBaseballTracker();
+  trackerProfileStatus.textContent = "Season details saved.";
+});
+
+baseballGameForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const game = Object.fromEntries(new FormData(baseballGameForm).entries());
+  const gameStats = Object.fromEntries(
+    baseballGameFields.map((field) => [field, Math.max(0, Number.parseInt(game[field], 10) || 0)]),
+  );
+
+  if (gameStats.hits > gameStats.atBats) {
+    trackerGameStatus.textContent = "Hits cannot be greater than at bats.";
+    return;
+  }
+
+  const hitTypesTotal = gameStats.doubles + gameStats.triples + gameStats.homeRuns;
+  if (hitTypesTotal > gameStats.hits) {
+    trackerGameStatus.textContent = "2B, 3B, and HR cannot add up to more than your hits.";
+    return;
+  }
+
+  tracker.games += 1;
+  baseballGameFields.forEach((field) => {
+    tracker[field] += gameStats[field];
+  });
+  saveBaseballTracker(tracker);
+  renderBaseballTracker();
+  baseballGameForm.reset();
+  trackerGameStatus.textContent = "Game added to your season totals.";
+});
+
+document.querySelector("[data-tracker-reset]")?.addEventListener("click", () => {
+  Object.assign(tracker, baseballTrackerDefaults);
+  saveBaseballTracker(tracker);
+  renderBaseballTracker();
+  trackerProfileStatus.textContent = "Season totals reset.";
+  trackerGameStatus.textContent = "";
+});
+
 document.querySelector("#sports-year").textContent = new Date().getFullYear();

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="A sports page for finding your rhythm, tracking the week, and staying in motion."
+      content="A personal baseball stat tracker for logging games and tracking a season."
     />
     <title>Sports — Alex Gomez Ewert</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
@@ -44,7 +44,103 @@
         <a class="sports-header-link" href="index.html#contact">Back to portfolio <span aria-hidden="true">↗</span></a>
       </header>
 
-      <main aria-label="Sports content"></main>
+      <main class="baseball-page">
+        <section class="baseball-hero" aria-labelledby="baseball-title">
+          <div class="baseball-hero-copy">
+            <p class="sports-eyebrow"><span></span> Baseball / Personal tracker</p>
+            <h1 id="baseball-title">Keep<br /><em>score.</em></h1>
+            <p class="sports-lede">
+              Log each game, keep your season totals close, and see the numbers
+              behind your work.
+            </p>
+            <a class="sports-button" href="#tracker">Track a game <span aria-hidden="true">↓</span></a>
+          </div>
+          <div class="baseball-hero-art" aria-label="Baseball stat tracker illustration" role="img">
+            <span class="baseball-hero-number">01 / 09</span>
+            <div class="baseball-hero-ball">PLAY<br />BALL</div>
+            <span class="baseball-hero-note">One game<br />at a time.</span>
+          </div>
+        </section>
+
+        <section class="baseball-tracker" id="tracker" aria-labelledby="tracker-title">
+          <div class="baseball-section-heading">
+            <div>
+              <p class="sports-section-label"><span>01</span> Season tracker</p>
+              <h2 id="tracker-title">Build your<br /><em>line.</em></h2>
+            </div>
+            <p>Save your details in this browser, then add one game at a time to keep your totals current.</p>
+          </div>
+
+          <div class="baseball-tracker-layout">
+            <section class="tracker-panel tracker-profile-panel" aria-labelledby="tracker-profile-title">
+              <p class="tracker-panel-label">Your season</p>
+              <h3 id="tracker-profile-title">Set the<br /><em>basics.</em></h3>
+              <form id="tracker-profile-form" class="tracker-profile-form">
+                <label>
+                  Player
+                  <input name="player" type="text" maxlength="80" required />
+                </label>
+                <label>
+                  Season
+                  <input name="season" type="text" maxlength="20" required />
+                </label>
+                <button class="tracker-button tracker-button-dark" type="submit">Save details <span aria-hidden="true">↗</span></button>
+              </form>
+              <p class="tracker-status" data-tracker-profile-status role="status" aria-live="polite"></p>
+            </section>
+
+            <section class="tracker-panel tracker-game-panel" aria-labelledby="game-entry-title">
+              <div class="tracker-panel-heading">
+                <div>
+                  <p class="tracker-panel-label">Game log</p>
+                  <h3 id="game-entry-title">Record a<br /><em>game.</em></h3>
+                </div>
+                <span class="tracker-game-mark">+01</span>
+              </div>
+              <form id="baseball-game-form" class="baseball-form-grid">
+                <label>AB<input name="atBats" type="number" min="0" step="1" value="0" required /><small>At bats</small></label>
+                <label>H<input name="hits" type="number" min="0" step="1" value="0" required /><small>Hits</small></label>
+                <label>2B<input name="doubles" type="number" min="0" step="1" value="0" required /><small>Doubles</small></label>
+                <label>3B<input name="triples" type="number" min="0" step="1" value="0" required /><small>Triples</small></label>
+                <label>HR<input name="homeRuns" type="number" min="0" step="1" value="0" required /><small>Home runs</small></label>
+                <label>BB<input name="walks" type="number" min="0" step="1" value="0" required /><small>Walks</small></label>
+                <label>RBI<input name="rbi" type="number" min="0" step="1" value="0" required /><small>Runs batted in</small></label>
+                <label>R<input name="runs" type="number" min="0" step="1" value="0" required /><small>Runs</small></label>
+                <label>SB<input name="stolenBases" type="number" min="0" step="1" value="0" required /><small>Steals</small></label>
+                <label>SO<input name="strikeouts" type="number" min="0" step="1" value="0" required /><small>Strikeouts</small></label>
+                <div class="tracker-form-actions">
+                  <button class="tracker-button" type="submit">Add game <span aria-hidden="true">↗</span></button>
+                  <p class="tracker-status" data-tracker-game-status role="status" aria-live="polite"></p>
+                </div>
+              </form>
+            </section>
+          </div>
+
+          <section class="tracker-stats-panel" aria-labelledby="season-line-title">
+            <div class="tracker-stats-heading">
+              <div>
+                <p class="tracker-panel-label">Season line</p>
+                <h3 id="season-line-title"><span data-tracker-player>Alex Gomez Ewert</span> / <em data-tracker-season>2026</em></h3>
+              </div>
+              <span class="tracker-games-count"><strong data-tracker-stat="games">0</strong> games logged</span>
+            </div>
+            <div class="baseball-stat-grid">
+              <div class="baseball-stat-card baseball-stat-featured"><span>AVG</span><strong data-tracker-stat="average">.000</strong><small>Batting average</small></div>
+              <div class="baseball-stat-card"><span>OBP</span><strong data-tracker-stat="obp">.000</strong><small>On-base percentage</small></div>
+              <div class="baseball-stat-card"><span>SLG</span><strong data-tracker-stat="slg">.000</strong><small>Slugging percentage</small></div>
+              <div class="baseball-stat-card"><span>OPS</span><strong data-tracker-stat="ops">.000</strong><small>On-base + slugging</small></div>
+              <div class="baseball-stat-card"><span>AB</span><strong data-tracker-stat="atBats">0</strong><small>At bats</small></div>
+              <div class="baseball-stat-card"><span>H</span><strong data-tracker-stat="hits">0</strong><small>Hits</small></div>
+              <div class="baseball-stat-card"><span>HR</span><strong data-tracker-stat="homeRuns">0</strong><small>Home runs</small></div>
+              <div class="baseball-stat-card"><span>RBI</span><strong data-tracker-stat="rbi">0</strong><small>Runs batted in</small></div>
+            </div>
+            <div class="tracker-stats-footer">
+              <p>Calculated from the game totals you enter. Walks are included in OBP; hit-by-pitches and sacrifice flies are not tracked yet.</p>
+              <button class="tracker-reset" type="button" data-tracker-reset>Reset season totals</button>
+            </div>
+          </section>
+        </section>
+      </main>
 
       <footer class="sports-footer">
         <span>© <span id="sports-year"></span> Alex Gomez Ewert</span>
@@ -52,6 +148,6 @@
       </footer>
     </div>
 
-    <script src="sports.js"></script>
+    <script src="sports.js?v=baseball-tracker"></script>
   </body>
 </html>
