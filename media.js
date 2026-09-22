@@ -9,7 +9,7 @@ const mediaPhotoStorageKey = "about-me-media-photos";
 const mediaVideoStorageKey = "about-me-media-videos";
 const mediaVideoDefaults = [
   "attached_assets/Video_(1)_1790099620861.mov",
-  null,
+  "attached_assets/Video_1790099821395.mov",
 ];
 
 mediaMenuToggle?.addEventListener("click", () => {
