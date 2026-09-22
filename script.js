@@ -10,6 +10,11 @@ const heroImageInput = document.querySelector("#hero-image-input");
 const heroImage = document.querySelector("[data-hero-image]");
 const heroImagePlaceholder = document.querySelector(".art-card-image-placeholder");
 const heroImageStorageKey = "about-me-hero-image";
+const brandMark = document.querySelector(".brand-mark");
+const brandInitials = document.querySelector("[data-brand-initials]");
+const brandImageInput = document.querySelector("#brand-image-input");
+const brandImage = document.querySelector("[data-brand-image]");
+const brandImageStorageKey = "about-me-brand-image";
 
 const profileDefaults = {
   name: "Alex Gomez Ewert",
@@ -56,8 +61,8 @@ const renderProfile = (profile) => {
     element.textContent = profile.name;
   });
   document.querySelector(".brand-name").textContent = profile.name;
-  document.querySelector(".brand").setAttribute("aria-label", `${profile.name} home`);
-  document.querySelector(".brand-mark").textContent = getInitials(profile.name);
+  document.querySelector(".brand-name").setAttribute("aria-label", `${profile.name} home`);
+  brandInitials.textContent = getInitials(profile.name);
   document.querySelectorAll("[data-profile-email-link]").forEach((element) => {
     element.href = `mailto:${profile.email.trim()}`;
   });
@@ -71,6 +76,48 @@ const renderProfile = (profile) => {
 
 const profile = getSavedProfile();
 renderProfile(profile);
+
+const renderBrandImage = (imageData) => {
+  if (imageData) {
+    brandImage.src = imageData;
+    brandImage.hidden = false;
+    brandMark.classList.add("has-image");
+    return;
+  }
+
+  brandImage.removeAttribute("src");
+  brandImage.hidden = true;
+  brandMark.classList.remove("has-image");
+};
+
+let savedBrandImage = null;
+try {
+  savedBrandImage = localStorage.getItem(brandImageStorageKey);
+} catch {
+  savedBrandImage = null;
+}
+renderBrandImage(savedBrandImage);
+
+brandMark?.addEventListener("click", () => {
+  brandImageInput?.click();
+});
+
+brandImageInput?.addEventListener("change", () => {
+  const file = brandImageInput.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      localStorage.setItem(brandImageStorageKey, reader.result);
+    } catch {
+      // Keep the preview visible even if this browser cannot store the image.
+    }
+    renderBrandImage(reader.result);
+    brandImageInput.value = "";
+  });
+  reader.readAsDataURL(file);
+});
 
 const renderHeroImage = (imageData) => {
   if (imageData) {

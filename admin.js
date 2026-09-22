@@ -11,6 +11,8 @@ const previousIntroDefault = "I’m a designer and builder who turns complex ide
 
 const adminForm = document.querySelector("#admin-profile-form");
 const adminStatus = document.querySelector(".admin-form-status");
+const adminBrandMark = document.querySelector(".admin-brand-mark");
+const adminBrandImage = document.querySelector("[data-brand-image]");
 
 const loadAdminProfile = () => {
   try {
@@ -51,10 +53,25 @@ const renderAdminProfile = (profile) => {
   document.querySelectorAll("[data-admin-initials]").forEach((element) => {
     element.textContent = initialsFor(profile.name);
   });
+  document.querySelector("[data-brand-initials]").textContent = initialsFor(profile.name);
   document.querySelector(".admin-brand-name").textContent = profile.name;
   document.querySelector(".admin-brand").setAttribute("aria-label", `${profile.name} home`);
   document.title = `Admin dashboard — ${profile.name}`;
 };
+
+const savedBrandImage = (() => {
+  try {
+    return localStorage.getItem("about-me-brand-image");
+  } catch {
+    return null;
+  }
+})();
+
+if (savedBrandImage) {
+  adminBrandImage.src = savedBrandImage;
+  adminBrandImage.hidden = false;
+  adminBrandMark.classList.add("has-image");
+}
 
 renderAdminProfile(loadAdminProfile());
 document.querySelector("#admin-year").textContent = new Date().getFullYear();

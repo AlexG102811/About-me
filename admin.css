@@ -85,6 +85,18 @@ textarea {
   letter-spacing: -0.1em;
 }
 
+.admin-brand-mark img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-brand-mark.has-image > span {
+  visibility: hidden;
+}
+
 .admin-sidebar-label,
 .admin-kicker,
 .admin-section-label,

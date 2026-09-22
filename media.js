@@ -164,7 +164,31 @@ const savedProfile = (() => {
   }
 })();
 
+const mediaBrandMark = document.querySelector(".sports-brand-mark");
+const mediaBrandImage = document.querySelector("[data-brand-image]");
+const savedBrandImage = (() => {
+  try {
+    return localStorage.getItem("about-me-brand-image");
+  } catch {
+    return null;
+  }
+})();
+
+if (savedBrandImage) {
+  mediaBrandImage.src = savedBrandImage;
+  mediaBrandImage.hidden = false;
+  mediaBrandMark.classList.add("has-image");
+}
+
 if (savedProfile?.name) {
+  const initials = savedProfile.name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 3)
+    .map((part) => part[0])
+    .join("");
+  document.querySelector("[data-brand-initials]").textContent = (initials || "AGE").toUpperCase();
   document.querySelector(".sports-brand-name").textContent = savedProfile.name;
   document.querySelector(".sports-brand").setAttribute("aria-label", `${savedProfile.name} home`);
   const footerLabel = document.querySelector(".sports-footer").firstElementChild;
