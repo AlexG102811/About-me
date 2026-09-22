@@ -136,7 +136,7 @@ textarea {
 }
 
 .admin-nav a.is-current span {
-  color: var(--lime);
+  color: var(--blue);
 }
 
 .admin-sidebar-footer {
@@ -196,7 +196,7 @@ textarea {
 
 .admin-kicker {
   margin: 0 0 15px;
-  color: var(--lime);
+  color: var(--blue);
 }
 
 .admin-topbar h1 {
@@ -207,7 +207,7 @@ textarea {
 }
 
 .admin-topbar h1 span {
-  color: var(--lime);
+  color: var(--blue);
   font-family: var(--serif);
   font-style: italic;
   font-weight: 500;
@@ -255,7 +255,7 @@ textarea {
 
 .admin-view-site span {
   margin-left: 8px;
-  color: var(--lime);
+  color: var(--blue);
 }
 
 .admin-view-site:hover {
@@ -285,7 +285,7 @@ textarea {
 }
 
 .admin-section-label span {
-  color: var(--lime);
+  color: var(--blue);
 }
 
 .admin-section-heading h2 {
@@ -297,7 +297,7 @@ textarea {
 }
 
 .admin-section-heading h2 em {
-  color: var(--lime);
+  color: var(--blue);
   font-family: var(--serif);
   font-weight: 500;
   letter-spacing: -0.04em;
@@ -363,7 +363,7 @@ textarea {
 .admin-stat-card a {
   display: inline-block;
   margin-top: 17px;
-  color: var(--lime);
+  color: var(--blue);
   font-family: var(--mono);
   font-size: 10px;
 }
@@ -419,7 +419,7 @@ textarea {
 }
 
 .admin-card-mark {
-  color: var(--lime);
+  color: var(--blue);
   font-size: 26px;
 }
 
@@ -486,7 +486,7 @@ textarea {
 }
 
 .admin-note-symbol {
-  color: var(--lime);
+  color: var(--blue);
   font-size: 30px;
 }
 
@@ -527,7 +527,7 @@ textarea {
 }
 
 .admin-dark-link:hover {
-  color: var(--lime);
+  color: var(--blue);
 }
 
 .admin-profile-grid {
@@ -622,11 +622,11 @@ textarea {
 }
 
 .admin-reset:hover {
-  color: var(--lime);
+  color: var(--blue);
 }
 
 .admin-form-status {
-  color: var(--lime);
+  color: var(--blue);
   font-family: var(--mono);
   font-size: 10px;
 }
@@ -681,7 +681,7 @@ textarea {
 }
 
 .admin-preview-card a:hover {
-  color: var(--lime);
+  color: var(--blue);
 }
 
 .admin-preview-card a span {
@@ -706,7 +706,7 @@ textarea {
 }
 
 .admin-page-row:hover {
-  color: var(--lime);
+  color: var(--blue);
 }
 
 .admin-page-icon {
@@ -762,7 +762,7 @@ textarea {
 }
 
 .admin-page-arrow {
-  color: var(--lime);
+  color: var(--blue);
   font-size: 20px;
 }
 
@@ -777,7 +777,7 @@ textarea {
 }
 
 .admin-footer a:hover {
-  color: var(--lime);
+  color: var(--blue);
 }
 
 @media (max-width: 900px) {
