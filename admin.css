@@ -745,6 +745,10 @@ textarea {
   background: var(--violet);
 }
 
+.admin-page-icon-blue {
+  background: var(--blue);
+}
+
 .admin-page-row strong,
 .admin-page-row small {
   display: block;
