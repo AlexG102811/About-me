@@ -139,6 +139,63 @@
               <button class="tracker-reset" type="button" data-tracker-reset>Reset season totals</button>
             </div>
           </section>
+
+          <section class="baseball-pitching" id="pitching" aria-labelledby="pitching-title">
+            <div class="baseball-section-heading">
+              <div>
+                <p class="sports-section-label"><span>02</span> Pitching tracker</p>
+                <h2 id="pitching-title">Take the<br /><em>mound.</em></h2>
+              </div>
+              <p>Log each outing with outs recorded, then keep your pitching line right beside your batting totals.</p>
+            </div>
+
+            <div class="pitching-tracker-layout">
+              <section class="tracker-panel tracker-pitching-game-panel" aria-labelledby="pitching-game-title">
+                <div class="tracker-panel-heading">
+                  <div>
+                    <p class="tracker-panel-label">Pitching log</p>
+                    <h3 id="pitching-game-title">Record an<br /><em>outing.</em></h3>
+                  </div>
+                  <span class="tracker-game-mark">+01</span>
+                </div>
+                <form id="baseball-pitching-form" class="baseball-form-grid pitching-form-grid">
+                  <label>OUTS<input name="outs" type="number" min="0" step="1" value="0" required /><small>Outs recorded</small></label>
+                  <label>H<input name="hitsAllowed" type="number" min="0" step="1" value="0" required /><small>Hits allowed</small></label>
+                  <label>BB<input name="walksAllowed" type="number" min="0" step="1" value="0" required /><small>Walks allowed</small></label>
+                  <label>K<input name="strikeouts" type="number" min="0" step="1" value="0" required /><small>Strikeouts</small></label>
+                  <label>ER<input name="earnedRuns" type="number" min="0" step="1" value="0" required /><small>Earned runs</small></label>
+                  <div class="tracker-form-actions">
+                    <button class="tracker-button" type="submit">Add outing <span aria-hidden="true">↗</span></button>
+                    <p class="tracker-status" data-pitching-status role="status" aria-live="polite"></p>
+                  </div>
+                </form>
+              </section>
+
+              <section class="tracker-stats-panel pitching-stats-panel" aria-labelledby="pitching-line-title">
+                <div class="tracker-stats-heading">
+                  <div>
+                    <p class="tracker-panel-label">Pitching line</p>
+                    <h3 id="pitching-line-title"><span data-tracker-player>Alex Gomez Ewert</span> / <em data-tracker-season>2026</em></h3>
+                  </div>
+                  <span class="tracker-games-count"><strong data-pitching-stat="games">0</strong> outings</span>
+                </div>
+                <div class="baseball-stat-grid pitching-stat-grid">
+                  <div class="baseball-stat-card baseball-stat-featured"><span>ERA</span><strong data-pitching-stat="era">0.00</strong><small>Earned run average</small></div>
+                  <div class="baseball-stat-card"><span>WHIP</span><strong data-pitching-stat="whip">0.00</strong><small>Walks + hits / IP</small></div>
+                  <div class="baseball-stat-card"><span>K/9</span><strong data-pitching-stat="kPer9">0.00</strong><small>Strikeouts per 9</small></div>
+                  <div class="baseball-stat-card"><span>IP</span><strong data-pitching-stat="innings">0.0</strong><small>Innings pitched</small></div>
+                  <div class="baseball-stat-card"><span>H</span><strong data-pitching-stat="hitsAllowed">0</strong><small>Hits allowed</small></div>
+                  <div class="baseball-stat-card"><span>BB</span><strong data-pitching-stat="walksAllowed">0</strong><small>Walks allowed</small></div>
+                  <div class="baseball-stat-card"><span>K</span><strong data-pitching-stat="strikeouts">0</strong><small>Strikeouts</small></div>
+                  <div class="baseball-stat-card"><span>ER</span><strong data-pitching-stat="earnedRuns">0</strong><small>Earned runs</small></div>
+                </div>
+                <div class="tracker-stats-footer">
+                  <p>ERA, WHIP, and K/9 use your total outs. Three outs display as 1.0 inning; one out displays as 0.1.</p>
+                  <button class="tracker-reset" type="button" data-pitching-reset>Reset pitching totals</button>
+                </div>
+              </section>
+            </div>
+          </section>
         </section>
       </main>
 
