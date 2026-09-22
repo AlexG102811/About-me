@@ -7,6 +7,10 @@ const mediaPhotoSlots = document.querySelectorAll("[data-photo-slot]");
 const mediaVideoSlots = document.querySelectorAll("[data-video-slot]");
 const mediaPhotoStorageKey = "about-me-media-photos";
 const mediaVideoStorageKey = "about-me-media-videos";
+const mediaVideoDefaults = [
+  "attached_assets/Video_(1)_1790099620861.mov",
+  null,
+];
 
 mediaMenuToggle?.addEventListener("click", () => {
   const isOpen = mediaMenuToggle.classList.toggle("is-open");
@@ -74,7 +78,7 @@ const renderSavedVideos = () => {
 
   mediaVideoSlots.forEach((slot, index) => {
     const video = slot.querySelector("[data-video-preview]");
-    const savedVideo = savedVideos[index];
+    const savedVideo = savedVideos[index] || mediaVideoDefaults[index];
     if (savedVideo) {
       video.src = savedVideo;
       video.hidden = false;
