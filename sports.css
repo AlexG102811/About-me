@@ -1340,6 +1340,45 @@ button {
   }
 }
 
+.baseball-pitching {
+  margin-top: 122px;
+  padding-top: 112px;
+  border-top: 1px solid var(--line);
+}
+
+.pitching-tracker-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(0, 1.18fr);
+  gap: 22px;
+}
+
+.tracker-pitching-game-panel {
+  background: var(--dark);
+}
+
+.pitching-stats-panel {
+  margin-top: 0;
+}
+
+.pitching-form-grid {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+@media (max-width: 800px) {
+  .baseball-pitching {
+    margin-top: 85px;
+    padding-top: 85px;
+  }
+
+  .pitching-tracker-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pitching-stats-panel {
+    margin-top: 22px;
+  }
+}
+
 @media (max-width: 430px) {
   .sports-hero h1 {
     font-size: 55px;

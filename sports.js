@@ -184,6 +184,7 @@ trackerProfileForm?.addEventListener("submit", (event) => {
   tracker.season = profileDetails.season.trim() || baseballTrackerDefaults.season;
   saveBaseballTracker(tracker);
   renderBaseballTracker();
+  renderPitchingTracker();
   trackerProfileStatus.textContent = "Season details saved.";
 });
 
@@ -219,8 +220,103 @@ document.querySelector("[data-tracker-reset]")?.addEventListener("click", () => 
   Object.assign(tracker, baseballTrackerDefaults);
   saveBaseballTracker(tracker);
   renderBaseballTracker();
+  renderPitchingTracker();
   trackerProfileStatus.textContent = "Season totals reset.";
   trackerGameStatus.textContent = "";
+});
+
+const baseballPitchingStorageKey = "about-me-baseball-pitching-tracker";
+const baseballPitchingFields = [
+  "outs",
+  "hitsAllowed",
+  "walksAllowed",
+  "strikeouts",
+  "earnedRuns",
+];
+const baseballPitchingDefaults = {
+  games: 0,
+  outs: 0,
+  hitsAllowed: 0,
+  walksAllowed: 0,
+  strikeouts: 0,
+  earnedRuns: 0,
+};
+
+const loadBaseballPitching = () => {
+  let savedPitching = {};
+  try {
+    savedPitching = JSON.parse(localStorage.getItem(baseballPitchingStorageKey)) || {};
+  } catch {
+    savedPitching = {};
+  }
+
+  const pitching = { ...baseballPitchingDefaults, ...savedPitching };
+  ["games", ...baseballPitchingFields].forEach((field) => {
+    pitching[field] = Math.max(0, Number.parseInt(pitching[field], 10) || 0);
+  });
+  return pitching;
+};
+
+const saveBaseballPitching = (pitching) => {
+  try {
+    localStorage.setItem(baseballPitchingStorageKey, JSON.stringify(pitching));
+  } catch {
+    // Keep the current pitching line visible even if this browser cannot save it.
+  }
+};
+
+const baseballPitching = loadBaseballPitching();
+const pitchingForm = document.querySelector("#baseball-pitching-form");
+const pitchingStatus = document.querySelector("[data-pitching-status]");
+
+const renderPitchingTracker = () => {
+  const innings = baseballPitching.outs / 3;
+  const era = baseballPitching.outs ? (baseballPitching.earnedRuns * 27) / baseballPitching.outs : 0;
+  const whip = baseballPitching.outs
+    ? (baseballPitching.hitsAllowed + baseballPitching.walksAllowed) / innings
+    : 0;
+  const kPer9 = baseballPitching.outs ? (baseballPitching.strikeouts * 27) / baseballPitching.outs : 0;
+  const calculatedStats = {
+    ...baseballPitching,
+    innings: baseballPitching.outs
+      ? `${Math.floor(baseballPitching.outs / 3)}.${baseballPitching.outs % 3}`
+      : "0.0",
+    era: era.toFixed(2),
+    whip: whip.toFixed(2),
+    kPer9: kPer9.toFixed(2),
+  };
+
+  document.querySelectorAll("[data-pitching-stat]").forEach((element) => {
+    element.textContent = calculatedStats[element.dataset.pitchingStat];
+  });
+  document.querySelectorAll("[data-tracker-player]").forEach((element) => {
+    element.textContent = tracker.player;
+  });
+  document.querySelectorAll("[data-tracker-season]").forEach((element) => {
+    element.textContent = tracker.season;
+  });
+};
+
+renderPitchingTracker();
+
+pitchingForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const outing = Object.fromEntries(new FormData(pitchingForm).entries());
+  baseballPitching.games += 1;
+  baseballPitchingFields.forEach((field) => {
+    baseballPitching[field] += Math.max(0, Number.parseInt(outing[field], 10) || 0);
+  });
+  saveBaseballPitching(baseballPitching);
+  renderPitchingTracker();
+  pitchingForm.reset();
+  pitchingStatus.textContent = "Outing added to your pitching totals.";
+});
+
+document.querySelector("[data-pitching-reset]")?.addEventListener("click", () => {
+  Object.assign(baseballPitching, baseballPitchingDefaults);
+  saveBaseballPitching(baseballPitching);
+  renderPitchingTracker();
+  pitchingStatus.textContent = "Pitching totals reset.";
 });
 
 document.querySelector("#sports-year").textContent = new Date().getFullYear();
