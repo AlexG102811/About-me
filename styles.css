@@ -395,6 +395,18 @@ h2 em {
   letter-spacing: -0.04em;
 }
 
+.about h2 small {
+  display: block;
+  margin-top: 28px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .about-details {
   align-self: end;
   max-width: 290px;
