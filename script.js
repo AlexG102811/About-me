@@ -10,6 +10,7 @@ const heroImageInput = document.querySelector("#hero-image-input");
 const heroImage = document.querySelector("[data-hero-image]");
 const heroImagePlaceholder = document.querySelector(".art-card-image-placeholder");
 const heroImageStorageKey = "about-me-hero-image";
+const heroImageDefault = "attached_assets/image1_1790099258012.jpeg";
 const brandMark = document.querySelector(".brand-mark");
 const brandInitials = document.querySelector("[data-brand-initials]");
 const brandImageInput = document.querySelector("#brand-image-input");
@@ -135,9 +136,9 @@ const renderHeroImage = (imageData) => {
 
 let savedHeroImage = null;
 try {
-  savedHeroImage = localStorage.getItem(heroImageStorageKey);
+  savedHeroImage = localStorage.getItem(heroImageStorageKey) || heroImageDefault;
 } catch {
-  savedHeroImage = null;
+  savedHeroImage = heroImageDefault;
 }
 renderHeroImage(savedHeroImage);
 
