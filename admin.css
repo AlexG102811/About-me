@@ -71,10 +71,12 @@ textarea {
 }
 
 .admin-brand-mark {
+  position: relative;
   display: grid;
   width: 30px;
   height: 30px;
   place-items: center;
+  overflow: hidden;
   color: var(--dark);
   background: var(--lime);
   border-radius: 50%;

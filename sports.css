@@ -63,16 +63,32 @@ button {
 }
 
 .sports-brand-mark {
+  position: relative;
   display: grid;
   width: 30px;
   height: 30px;
   place-items: center;
+  overflow: hidden;
   color: var(--dark);
   background: var(--lime);
   border-radius: 50%;
   font-family: var(--mono);
   font-size: 9px;
   letter-spacing: -0.1em;
+}
+
+.sports-brand-mark img,
+.admin-brand-mark img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sports-brand-mark.has-image > span,
+.admin-brand-mark.has-image > span {
+  visibility: hidden;
 }
 
 .sports-nav {

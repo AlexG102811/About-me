@@ -64,16 +64,41 @@ a {
 }
 
 .brand-mark {
+  position: relative;
   display: grid;
   width: 30px;
   height: 30px;
   place-items: center;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
   color: var(--ink);
   background: var(--lime);
   border-radius: 50%;
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: -0.08em;
+  cursor: pointer;
+}
+
+.brand-mark img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.brand-mark.has-image > span {
+  visibility: hidden;
+}
+
+.brand-image-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .site-nav {

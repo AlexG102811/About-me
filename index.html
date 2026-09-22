@@ -14,10 +14,25 @@
   <body>
     <div class="page-shell">
       <header class="site-header">
-        <a class="brand" href="#top" aria-label="Alex Gomez Ewert home">
-          <span class="brand-mark">AGE</span>
-          <span class="brand-name">Alex Gomez Ewert</span>
-        </a>
+        <div class="brand">
+          <button
+            class="brand-mark"
+            type="button"
+            aria-label="Upload profile picture"
+            aria-controls="brand-image-input"
+          >
+            <span data-brand-initials>AGE</span>
+            <img data-brand-image alt="" hidden />
+          </button>
+          <a class="brand-name" href="#top">Alex Gomez Ewert</a>
+          <input
+            id="brand-image-input"
+            class="brand-image-input"
+            type="file"
+            accept="image/*"
+            aria-label="Upload profile picture"
+          />
+        </div>
 
         <button
           class="menu-toggle"
