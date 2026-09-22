@@ -808,6 +808,538 @@ button {
   }
 }
 
+.baseball-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(360px, 1.08fr);
+  align-items: center;
+  gap: 70px;
+  min-height: 590px;
+  padding: 60px 0 77px;
+}
+
+.baseball-hero h1,
+.baseball-section-heading h2 {
+  margin: 0;
+  font-size: clamp(57px, 7.2vw, 88px);
+  font-weight: 500;
+  line-height: 0.96;
+  letter-spacing: -0.08em;
+}
+
+.baseball-hero h1 em,
+.baseball-section-heading h2 em,
+.tracker-panel h3 em {
+  color: var(--blue);
+  font-family: var(--serif);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.baseball-hero-art {
+  position: relative;
+  display: grid;
+  width: min(100%, 560px);
+  aspect-ratio: 1.07 / 1;
+  place-items: center;
+  justify-self: end;
+  overflow: hidden;
+  background: var(--blue);
+}
+
+.baseball-hero-art::before,
+.baseball-hero-art::after {
+  position: absolute;
+  border: 1px solid rgba(32, 51, 48, 0.35);
+  border-radius: 50%;
+  content: "";
+}
+
+.baseball-hero-art::before {
+  top: 13%;
+  left: -8%;
+  width: 116%;
+  height: 69%;
+  transform: rotate(-18deg);
+}
+
+.baseball-hero-art::after {
+  right: -15%;
+  bottom: -27%;
+  width: 69%;
+  aspect-ratio: 1;
+}
+
+.baseball-hero-ball {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 47%;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 2px solid var(--dark);
+  border-radius: 50%;
+  color: var(--lime);
+  background: var(--dark);
+  font-family: var(--serif);
+  font-size: clamp(25px, 4vw, 52px);
+  font-style: italic;
+  line-height: 0.84;
+  text-align: center;
+  transform: rotate(-13deg);
+}
+
+.baseball-hero-ball::before,
+.baseball-hero-ball::after {
+  position: absolute;
+  top: -9%;
+  left: 48%;
+  width: 2px;
+  height: 118%;
+  background: var(--blue);
+  content: "";
+  transform: rotate(42deg);
+}
+
+.baseball-hero-ball::after {
+  transform: rotate(-42deg);
+}
+
+.baseball-hero-number {
+  position: absolute;
+  top: 24px;
+  right: 25px;
+  z-index: 1;
+  color: rgba(32, 51, 48, 0.68);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.baseball-hero-note {
+  position: absolute;
+  right: 8%;
+  bottom: 10%;
+  z-index: 1;
+  color: var(--dark);
+  font-family: var(--serif);
+  font-size: 25px;
+  font-style: italic;
+  line-height: 0.94;
+  text-align: right;
+}
+
+.baseball-tracker {
+  padding: 112px 0 145px;
+  border-top: 1px solid var(--line);
+}
+
+.baseball-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 50px;
+  margin-bottom: 54px;
+}
+
+.baseball-section-heading h2 {
+  margin-top: 30px;
+  font-size: clamp(46px, 5.7vw, 73px);
+}
+
+.baseball-section-heading > p {
+  max-width: 280px;
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.baseball-tracker-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  gap: 22px;
+}
+
+.tracker-panel,
+.tracker-stats-panel {
+  border: 1px solid var(--line);
+}
+
+.tracker-panel {
+  min-width: 0;
+  padding: 34px;
+}
+
+.tracker-profile-panel {
+  color: var(--dark);
+  background: var(--sage);
+}
+
+.tracker-game-panel {
+  color: var(--ink);
+  background: var(--dark);
+}
+
+.tracker-panel-label {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tracker-profile-panel .tracker-panel-label {
+  color: rgba(32, 51, 48, 0.65);
+}
+
+.tracker-panel h3 {
+  margin: 0 0 31px;
+  font-size: clamp(34px, 4vw, 54px);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.08em;
+}
+
+.tracker-profile-panel h3 em {
+  color: var(--dark);
+}
+
+.tracker-profile-form {
+  display: grid;
+  gap: 18px;
+}
+
+.tracker-profile-form label,
+.baseball-form-grid label {
+  display: block;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tracker-profile-panel label {
+  color: rgba(32, 51, 48, 0.7);
+}
+
+.tracker-profile-form input,
+.baseball-form-grid input {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--ink);
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 15px;
+  outline: none;
+}
+
+.tracker-profile-panel input {
+  border-color: rgba(32, 51, 48, 0.35);
+  color: var(--dark);
+}
+
+.tracker-profile-form input:focus,
+.baseball-form-grid input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(159, 200, 223, 0.16);
+}
+
+.tracker-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  min-width: 133px;
+  padding: 14px 15px 14px 17px;
+  border: 0;
+  color: var(--dark);
+  background: var(--blue);
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: transform 180ms ease, background-color 180ms ease;
+}
+
+.tracker-button:hover {
+  background: #b9dced;
+  transform: translateY(-3px);
+}
+
+.tracker-button-dark {
+  color: var(--ink);
+  background: var(--dark);
+}
+
+.tracker-button-dark:hover {
+  color: var(--dark);
+  background: var(--blue);
+}
+
+.tracker-status {
+  min-height: 16px;
+  margin: 16px 0 0;
+  color: var(--blue);
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.tracker-profile-panel .tracker-status {
+  color: var(--dark);
+}
+
+.tracker-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.tracker-panel-heading h3 {
+  margin-bottom: 31px;
+}
+
+.tracker-game-mark {
+  color: var(--blue);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.baseball-form-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px 10px;
+}
+
+.baseball-form-grid label {
+  color: #b1bdb6;
+}
+
+.baseball-form-grid input {
+  padding: 10px 8px;
+  border-color: rgba(245, 243, 235, 0.2);
+  text-align: center;
+}
+
+.baseball-form-grid small {
+  display: block;
+  margin-top: 7px;
+  color: rgba(174, 182, 176, 0.75);
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0;
+  text-align: center;
+  text-transform: none;
+}
+
+.tracker-form-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 18px;
+  margin-top: 10px;
+}
+
+.tracker-form-actions .tracker-status {
+  margin: 0;
+}
+
+.tracker-stats-panel {
+  margin-top: 22px;
+  padding: 34px;
+}
+
+.tracker-stats-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.tracker-stats-heading h3 {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+}
+
+.tracker-stats-heading h3 em {
+  color: var(--blue);
+  font-family: var(--serif);
+  font-style: italic;
+}
+
+.tracker-games-count {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.tracker-games-count strong {
+  color: var(--blue);
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.baseball-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.baseball-stat-card {
+  min-height: 132px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: #111614;
+}
+
+.baseball-stat-card span,
+.baseball-stat-card small {
+  display: block;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.baseball-stat-card strong {
+  display: block;
+  margin: 21px 0 10px;
+  color: var(--ink);
+  font-size: 31px;
+  font-weight: 500;
+  letter-spacing: -0.08em;
+}
+
+.baseball-stat-card small {
+  color: #748079;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.baseball-stat-featured {
+  border-color: var(--blue);
+  background: var(--blue);
+}
+
+.baseball-stat-featured span,
+.baseball-stat-featured strong,
+.baseball-stat-featured small {
+  color: var(--dark);
+}
+
+.tracker-stats-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-top: 25px;
+}
+
+.tracker-stats-footer p {
+  max-width: 450px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.tracker-reset {
+  flex: 0 0 auto;
+  padding: 8px 0;
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.tracker-reset:hover {
+  color: var(--blue);
+}
+
+@media (max-width: 800px) {
+  .baseball-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 60px;
+    min-height: 0;
+    padding: 75px 0 90px;
+  }
+
+  .baseball-hero-art {
+    width: min(100%, 500px);
+    margin: 0 auto;
+  }
+
+  .baseball-tracker {
+    padding: 85px 0 100px;
+  }
+
+  .baseball-section-heading {
+    display: block;
+  }
+
+  .baseball-section-heading > p {
+    margin-top: 30px;
+  }
+
+  .baseball-tracker-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .baseball-form-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .tracker-stats-heading,
+  .tracker-stats-footer {
+    display: block;
+  }
+
+  .tracker-games-count {
+    display: block;
+    margin-top: 18px;
+  }
+
+  .tracker-stats-footer p {
+    margin-bottom: 15px;
+  }
+}
+
+@media (max-width: 520px) {
+  .tracker-panel,
+  .tracker-stats-panel {
+    padding: 24px;
+  }
+
+  .baseball-form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tracker-form-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .baseball-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 430px) {
   .sports-hero h1 {
     font-size: 55px;
