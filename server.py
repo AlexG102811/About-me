@@ -89,6 +89,8 @@ class SiteHandler(SimpleHTTPRequestHandler):
     server_version = "PersonalSite/1.0"
 
     def end_headers(self) -> None:
+        if getattr(self, "_current_path", "") == "/admin.html":
+            self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "same-origin")
         self.send_header("X-Frame-Options", "SAMEORIGIN")
@@ -96,6 +98,7 @@ class SiteHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path
+        self._current_path = path
 
         if path == "/admin.html" and not has_valid_session(self):
             query = urlencode({"next": "/admin.html"})

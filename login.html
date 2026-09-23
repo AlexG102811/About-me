@@ -20,6 +20,7 @@
       <p class="auth-lede">Enter the password to open the site dashboard.</p>
       <form class="auth-form" method="post" action="/login">
         <input type="hidden" name="next" value="/admin.html" />
+        <input class="auth-visually-hidden" type="text" name="username" value="admin" autocomplete="username" tabindex="-1" aria-hidden="true" />
         <label for="password">Admin password</label>
         <input
           id="password"
