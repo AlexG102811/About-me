@@ -89,7 +89,7 @@ class SiteHandler(SimpleHTTPRequestHandler):
     server_version = "PersonalSite/1.0"
 
     def end_headers(self) -> None:
-        if getattr(self, "_current_path", "") == "/admin.html":
+        if getattr(self, "_current_path", "") in {"/admin.html", "/future.html"}:
             self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "same-origin")
