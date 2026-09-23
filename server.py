@@ -5,9 +5,13 @@ from __future__ import annotations
 
 import hmac
 import html
+import json
 import os
+import re
 import secrets
 import time
+import uuid
+from datetime import datetime, timezone
 from http import HTTPStatus
 from http.cookies import SimpleCookie
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -16,15 +20,19 @@ from urllib.parse import parse_qs, urlencode, urlparse
 
 
 ROOT = Path(__file__).resolve().parent
+MESSAGES_PATH = ROOT / ".site-messages.json"
 HOST = "0.0.0.0"
 PORT = 5000
 SESSION_TTL = 60 * 60 * 8
 LOGIN_WINDOW = 60 * 5
 MAX_LOGIN_ATTEMPTS = 5
+MESSAGE_WINDOW = 60 * 15
+MAX_MESSAGE_ATTEMPTS = 10
 SESSION_COOKIE = "admin_session"
 
 sessions: dict[str, float] = {}
 login_attempts: dict[str, list[float]] = {}
+message_attempts: dict[str, list[float]] = {}
 
 
 def configured_secret() -> str:
@@ -85,6 +93,59 @@ def record_login_attempt(address: str, now: float) -> None:
     login_attempts.setdefault(address, []).append(now)
 
 
+def clean_message_attempts(now: float) -> None:
+    for address, attempts in list(message_attempts.items()):
+        recent = [attempt for attempt in attempts if now - attempt < MESSAGE_WINDOW]
+        if recent:
+            message_attempts[address] = recent
+        else:
+            message_attempts.pop(address, None)
+
+
+def message_is_limited(address: str, now: float) -> bool:
+    clean_message_attempts(now)
+    return len(message_attempts.get(address, [])) >= MAX_MESSAGE_ATTEMPTS
+
+
+def record_message_attempt(address: str, now: float) -> None:
+    message_attempts.setdefault(address, []).append(now)
+
+
+def load_messages() -> list[dict]:
+    if not MESSAGES_PATH.exists():
+        return []
+    try:
+        messages = json.loads(MESSAGES_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise RuntimeError("The message store contains invalid JSON.") from error
+    if not isinstance(messages, list):
+        raise RuntimeError("The message store must contain a list.")
+    return messages
+
+
+def save_messages(messages: list[dict]) -> None:
+    temporary_path = MESSAGES_PATH.with_suffix(".tmp")
+    temporary_path.write_text(
+        json.dumps(messages, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    temporary_path.replace(MESSAGES_PATH)
+
+
+def message_response(handler: SimpleHTTPRequestHandler, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
+    response = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    handler.send_response(status)
+    handler.send_header("Content-Type", "application/json; charset=utf-8")
+    handler.send_header("Content-Length", str(len(response)))
+    handler.send_header("Cache-Control", "no-store")
+    handler.end_headers()
+    handler.wfile.write(response)
+
+
+def valid_email(value: str) -> bool:
+    return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value)) and len(value) <= 254
+
+
 class SiteHandler(SimpleHTTPRequestHandler):
     server_version = "PersonalSite/1.0"
 
@@ -100,6 +161,10 @@ class SiteHandler(SimpleHTTPRequestHandler):
         path = urlparse(self.path).path
         self._current_path = path
 
+        if path in {"/.site-messages.json", "/.site-messages.tmp"}:
+            self.send_error(HTTPStatus.NOT_FOUND)
+            return
+
         if path == "/admin.html" and not has_valid_session(self):
             query = urlencode({"next": "/admin.html"})
             self.redirect(f"/login.html?{query}")
@@ -113,10 +178,27 @@ class SiteHandler(SimpleHTTPRequestHandler):
             self.logout()
             return
 
+        if path == "/api/messages":
+            if not has_valid_session(self):
+                message_response(self, {"error": "Authentication required."}, HTTPStatus.UNAUTHORIZED)
+                return
+            message_response(self, {"messages": load_messages()})
+            return
+
         super().do_GET()
 
     def do_POST(self) -> None:
-        if urlparse(self.path).path != "/login":
+        path = urlparse(self.path).path
+
+        if path == "/messages":
+            self.receive_message()
+            return
+
+        if path.startswith("/api/messages/") and path.endswith("/read"):
+            self.mark_message_read(path)
+            return
+
+        if path != "/login":
             self.send_error(HTTPStatus.NOT_FOUND)
             return
 
@@ -193,6 +275,82 @@ class SiteHandler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(payload)
+
+    def receive_message(self) -> None:
+        address = client_address(self)
+        now = time.time()
+        if message_is_limited(address, now):
+            self.respond_to_message_submission(
+                {"error": "Too many messages from this address. Try again later."},
+                HTTPStatus.TOO_MANY_REQUESTS,
+            )
+            return
+
+        record_message_attempt(address, now)
+        length = int(self.headers.get("Content-Length", "0"))
+        if length > 12000:
+            self.respond_to_message_submission({"error": "Message is too large."}, HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+            return
+
+        body = self.rfile.read(length).decode("utf-8", errors="replace")
+        form = parse_qs(body, keep_blank_values=True)
+        name = form.get("name", [""])[0].strip()
+        email = form.get("email", [""])[0].strip()
+        message = form.get("message", [""])[0].strip()
+        honeypot = form.get("website", [""])[0].strip()
+
+        if honeypot:
+            self.respond_to_message_submission({"ok": True, "message": "Thanks for reaching out."})
+            return
+
+        if not 1 <= len(name) <= 80:
+            self.respond_to_message_submission({"error": "Please enter your name."}, HTTPStatus.BAD_REQUEST)
+            return
+        if not valid_email(email):
+            self.respond_to_message_submission({"error": "Please enter a valid email address."}, HTTPStatus.BAD_REQUEST)
+            return
+        if not 1 <= len(message) <= 3000:
+            self.respond_to_message_submission({"error": "Please write a message before sending."}, HTTPStatus.BAD_REQUEST)
+            return
+
+        messages = load_messages()
+        messages.append(
+            {
+                "id": uuid.uuid4().hex,
+                "name": name,
+                "email": email,
+                "message": message,
+                "submittedAt": datetime.now(timezone.utc).isoformat(),
+                "read": False,
+            }
+        )
+        save_messages(messages)
+        self.respond_to_message_submission({"ok": True, "message": "Thanks for reaching out."})
+
+    def respond_to_message_submission(self, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
+        if "application/json" in self.headers.get("Accept", ""):
+            message_response(self, payload, status)
+            return
+        if status == HTTPStatus.OK:
+            self.redirect("/index.html?message=sent#contact")
+            return
+        self.redirect("/index.html?message=error#contact")
+
+    def mark_message_read(self, path: str) -> None:
+        if not has_valid_session(self):
+            message_response(self, {"error": "Authentication required."}, HTTPStatus.UNAUTHORIZED)
+            return
+
+        parts = path.split("/")
+        message_id = parts[3] if len(parts) == 5 else ""
+        messages = load_messages()
+        for message in messages:
+            if message.get("id") == message_id:
+                message["read"] = True
+                save_messages(messages)
+                message_response(self, {"ok": True, "message": message})
+                return
+        message_response(self, {"error": "Message not found."}, HTTPStatus.NOT_FOUND)
 
 
 def main() -> None:

@@ -24,6 +24,7 @@
         <div class="admin-sidebar-label">Workspace</div>
         <nav class="admin-nav" aria-label="Admin navigation">
           <a class="is-current" href="#overview"><span>↗</span> Overview</a>
+          <a href="#messages"><span>✉</span> Messages <b class="admin-nav-badge" id="admin-message-badge">0</b></a>
           <a href="#profile"><span>○</span> Profile</a>
           <a href="#pages"><span>□</span> Pages</a>
         </nav>
@@ -115,10 +116,30 @@
           </div>
         </section>
 
+        <section class="admin-messages-section" id="messages" aria-labelledby="messages-title">
+          <div class="admin-section-heading">
+            <div>
+              <p class="admin-section-label"><span>Inbox</span> Messages</p>
+              <h2 id="messages-title">Notes from<br /><em>your people.</em></h2>
+            </div>
+            <div class="admin-messages-heading-actions">
+              <p class="admin-heading-note">Messages sent through your contact form appear here.</p>
+              <button class="admin-reset" id="refresh-messages" type="button">Refresh inbox ↻</button>
+            </div>
+          </div>
+          <div class="admin-messages-summary">
+            <span><strong id="admin-message-count">0</strong> total messages</span>
+            <span><strong id="admin-unread-count">0</strong> unread</span>
+          </div>
+          <div class="admin-messages-list" id="admin-messages-list">
+            <p class="admin-messages-loading">Loading messages…</p>
+          </div>
+        </section>
+
         <section class="admin-profile-section" id="profile" aria-labelledby="profile-title">
           <div class="admin-section-heading">
             <div>
-              <p class="admin-section-label"><span>02</span> Profile</p>
+              <p class="admin-section-label"><span>03</span> Profile</p>
               <h2 id="profile-title">Keep it<br /><em>personal.</em></h2>
             </div>
             <p class="admin-heading-note">These details appear across your homepage and page headers.</p>
@@ -171,7 +192,7 @@
         <section class="admin-pages-section" id="pages" aria-labelledby="pages-title">
           <div class="admin-section-heading">
             <div>
-              <p class="admin-section-label"><span>03</span> Pages</p>
+              <p class="admin-section-label"><span>04</span> Pages</p>
               <h2 id="pages-title">What’s<br /><em>live.</em></h2>
             </div>
           </div>

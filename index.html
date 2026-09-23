@@ -206,6 +206,27 @@
               <h2 id="contact-title">Have a good idea?<br /><em>Let’s make it real.</em></h2>
               <p data-profile="contactNote">I’m always open to a thoughtful conversation, a new collaboration, or a great excuse to make something.</p>
               <a class="button button-light" data-profile-email-link href="mailto:hello@example.com">Say hello <span aria-hidden="true">↗</span></a>
+              <p class="contact-form-intro">Or send a note directly.</p>
+              <form class="contact-form" id="contact-form" action="/messages" method="post">
+                <label>
+                  Your name
+                  <input name="name" type="text" autocomplete="name" maxlength="80" required />
+                </label>
+                <label>
+                  Email address
+                  <input name="email" type="email" autocomplete="email" maxlength="254" required />
+                </label>
+                <label>
+                  Message
+                  <textarea name="message" rows="4" maxlength="3000" required></textarea>
+                </label>
+                <label class="contact-honeypot" aria-hidden="true">
+                  Website
+                  <input name="website" type="text" tabindex="-1" autocomplete="off" />
+                </label>
+                <button class="button button-light contact-submit" type="submit">Send message <span aria-hidden="true">↗</span></button>
+                <p class="contact-form-status" id="contact-form-status" role="status" aria-live="polite"></p>
+              </form>
             </div>
             <div class="contact-mark" aria-hidden="true">
               <span>✳</span>

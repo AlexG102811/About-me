@@ -713,6 +713,78 @@ h2 em {
   line-height: 1.6;
 }
 
+.contact-form-intro {
+  margin: 34px 0 14px;
+  color: #a6b3ac;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.contact-form {
+  display: flex;
+  max-width: 355px;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contact-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #a6b3ac;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(244, 240, 233, 0.23);
+  border-radius: 0;
+  outline: none;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.04);
+  font: 13px/1.45 var(--sans);
+  letter-spacing: normal;
+  resize: vertical;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  border-color: var(--lime);
+  box-shadow: 0 0 0 2px rgba(216, 243, 106, 0.12);
+}
+
+.contact-form .contact-submit {
+  align-self: flex-start;
+  margin-top: 3px;
+  cursor: pointer;
+  font: 11px var(--mono);
+}
+
+.contact-form-status {
+  min-height: 18px;
+  margin: 0;
+  color: var(--blue) !important;
+  font-family: var(--mono);
+  font-size: 10px !important;
+}
+
+.contact-honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
 .contact-mark {
   position: relative;
   min-height: 425px;

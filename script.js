@@ -215,3 +215,34 @@ profileForm?.querySelector(".settings-reset")?.addEventListener("click", () => {
   renderProfile(profileDefaults);
   settingsStatus.textContent = "Defaults restored.";
 });
+
+const contactForm = document.querySelector("#contact-form");
+const contactStatus = document.querySelector("#contact-form-status");
+const contactSubmit = contactForm?.querySelector(".contact-submit");
+const contactResult = new URLSearchParams(window.location.search).get("message");
+
+if (contactResult === "sent") {
+  contactStatus.textContent = "Thanks — your message was sent.";
+}
+
+contactForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  contactStatus.textContent = "Sending…";
+  contactSubmit.disabled = true;
+
+  try {
+    const response = await fetch(contactForm.action, {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      body: new URLSearchParams(new FormData(contactForm)),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Message could not be sent.");
+    contactForm.reset();
+    contactStatus.textContent = result.message;
+  } catch (error) {
+    contactStatus.textContent = error.message || "Message could not be sent. Please try again.";
+  } finally {
+    contactSubmit.disabled = false;
+  }
+});

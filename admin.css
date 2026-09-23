@@ -139,6 +139,21 @@ textarea {
   text-align: center;
 }
 
+.admin-nav-badge {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  margin-left: auto;
+  padding: 0 5px;
+  place-items: center;
+  color: var(--dark);
+  background: var(--lime);
+  border-radius: 9px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+}
+
 .admin-nav a:hover,
 .admin-nav a.is-current {
   color: var(--ink);
@@ -285,6 +300,7 @@ textarea {
 }
 
 .admin-overview,
+.admin-messages-section,
 .admin-profile-section,
 .admin-pages-section {
   padding: 83px 0 100px;
@@ -323,6 +339,137 @@ textarea {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.55;
+}
+
+.admin-messages-heading-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 28px;
+}
+
+.admin-messages-heading-actions .admin-reset {
+  white-space: nowrap;
+}
+
+.admin-messages-summary {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 17px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.admin-messages-summary strong {
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.admin-messages-list {
+  border-top: 1px solid var(--line);
+}
+
+.admin-messages-loading,
+.admin-messages-empty {
+  margin: 0;
+  padding: 28px 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.admin-message-card {
+  padding: 23px 24px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.admin-message-card.is-unread {
+  box-shadow: inset 3px 0 0 var(--lime);
+}
+
+.admin-message-header,
+.admin-message-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.admin-message-sender {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-message-avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: var(--dark);
+  background: var(--blue);
+  border-radius: 50%;
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.admin-message-sender strong {
+  display: block;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.admin-message-sender a,
+.admin-message-date {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.admin-message-sender a:hover {
+  color: var(--blue);
+}
+
+.admin-message-unread {
+  color: var(--lime);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-message-body {
+  max-width: 720px;
+  margin: 23px 0;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-message-footer {
+  justify-content: flex-start;
+}
+
+.admin-message-action {
+  padding: 8px 0;
+  border: 0;
+  color: var(--blue);
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.admin-message-action:hover {
+  color: var(--lime);
 }
 
 .admin-stat-grid {
@@ -850,6 +997,7 @@ textarea {
   }
 
   .admin-overview,
+  .admin-messages-section,
   .admin-profile-section,
   .admin-pages-section {
     padding: 70px 0 85px;
@@ -861,6 +1009,14 @@ textarea {
 
   .admin-heading-note {
     margin-top: 28px;
+  }
+
+  .admin-messages-heading-actions {
+    display: block;
+  }
+
+  .admin-messages-heading-actions .admin-heading-note {
+    margin-bottom: 18px;
   }
 
   .admin-stat-grid,
@@ -908,5 +1064,15 @@ textarea {
 
   .admin-page-status {
     display: none;
+  }
+
+  .admin-message-card {
+    padding: 20px;
+  }
+
+  .admin-message-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
   }
 }
