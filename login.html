@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Sign in to the personal site admin workspace." />
+    <title>Admin access — Alex Gomez Ewert</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="auth.css" />
+  </head>
+  <body class="auth-page">
+    <main class="auth-card">
+      <a class="auth-brand" href="index.html" aria-label="Alex Gomez Ewert home">
+        <span class="auth-brand-mark">AGE</span>
+        <span>Alex Gomez Ewert</span>
+      </a>
+      <div class="auth-rule"></div>
+      <p class="auth-kicker"><span></span> Private workspace</p>
+      <h1>Admin<br /><em>access.</em></h1>
+      <p class="auth-lede">Enter the password to open the site dashboard.</p>
+      <form class="auth-form" method="post" action="/login">
+        <input type="hidden" name="next" value="/admin.html" />
+        <label for="password">Admin password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+          autofocus
+        />
+        <p class="auth-error" role="alert" data-auth-error></p>
+        <button type="submit">Enter dashboard <span aria-hidden="true">↗</span></button>
+      </form>
+      <a class="auth-back" href="index.html">← Back to portfolio</a>
+    </main>
+  </body>
+</html>
