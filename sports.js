@@ -325,18 +325,11 @@ const boxingGameRoot = document.querySelector("#boxing-game");
 
 if (boxingGameRoot) {
   const boxingArena = document.querySelector("#boxing-arena");
-  const boxingGameLayout = document.querySelector(".boxing-game-layout");
   const boxingCue = document.querySelector("#boxing-cue");
   const boxingTime = document.querySelector("#boxing-time");
   const boxingStatus = document.querySelector("#boxing-game-status");
   const boxingStart = document.querySelector("#boxing-start");
   const boxingActions = [...document.querySelectorAll("[data-boxing-action]")];
-  const boxingFighterOptions = [...document.querySelectorAll("[data-boxing-fighter]")];
-  const boxingFighters = {
-    lime: { name: "The Contender" },
-    blue: { name: "The Challenger" },
-  };
-  const boxingFighterStorageKey = "about-me-boxing-fighter";
   const boxingMoves = {
     jab: { label: "Jab", damage: 7, stamina: 10 },
     cross: { label: "Cross", damage: 12, stamina: 20 },
@@ -350,16 +343,6 @@ if (boxingGameRoot) {
     bestScore = 0;
   }
 
-  let selectedBoxingFighter = "lime";
-  try {
-    const savedFighter = localStorage.getItem(boxingFighterStorageKey);
-    if (savedFighter && Object.prototype.hasOwnProperty.call(boxingFighters, savedFighter)) {
-      selectedBoxingFighter = savedFighter;
-    }
-  } catch {
-    selectedBoxingFighter = "lime";
-  }
-
   const boxingState = {
     active: false,
     phase: "ready",
@@ -370,19 +353,6 @@ if (boxingGameRoot) {
     score: 0,
     guarded: false,
     actionTaken: false,
-  };
-
-  const boxingRenderFighterSelection = () => {
-    const opponentId = selectedBoxingFighter === "lime" ? "blue" : "lime";
-    boxingGameLayout.dataset.playerFighter = selectedBoxingFighter;
-    document.querySelector("#boxing-player-name").textContent = boxingFighters[selectedBoxingFighter].name;
-    document.querySelector("#boxing-opponent-name").textContent = boxingFighters[opponentId].name;
-    boxingFighterOptions.forEach((button) => {
-      const isSelected = button.dataset.boxingFighter === selectedBoxingFighter;
-      button.classList.toggle("is-selected", isSelected);
-      button.setAttribute("aria-pressed", String(isSelected));
-      button.disabled = boxingState.active;
-    });
   };
 
   let boxingInterval = null;
@@ -440,17 +410,13 @@ if (boxingGameRoot) {
   const boxingRender = () => {
     document.querySelector("#boxing-player-health").style.width = `${boxingState.playerHealth}%`;
     document.querySelector("#boxing-player-health-label").textContent = `${boxingState.playerHealth}%`;
-    document.querySelector("#boxing-player-health-track").setAttribute("aria-valuenow", boxingState.playerHealth);
     document.querySelector("#boxing-opponent-health").style.width = `${boxingState.opponentHealth}%`;
     document.querySelector("#boxing-opponent-health-label").textContent = `${boxingState.opponentHealth}%`;
-    document.querySelector("#boxing-opponent-health-track").setAttribute("aria-valuenow", boxingState.opponentHealth);
     document.querySelector("#boxing-stamina").style.width = `${boxingState.stamina}%`;
     document.querySelector("#boxing-stamina-label").textContent = `${boxingState.stamina}%`;
-    document.querySelector("#boxing-stamina-track").setAttribute("aria-valuenow", boxingState.stamina);
     document.querySelector("#boxing-score").textContent = boxingState.score;
     document.querySelector("#boxing-best-score").textContent = bestScore;
     boxingTime.textContent = boxingState.time;
-    boxingRenderFighterSelection();
 
     boxingActions.forEach((button) => {
       const action = button.dataset.boxingAction;
@@ -584,18 +550,6 @@ if (boxingGameRoot) {
   };
 
   boxingStart.addEventListener("click", boxingStartRound);
-  boxingFighterOptions.forEach((button) => {
-    button.addEventListener("click", () => {
-      if (boxingState.active || !Object.prototype.hasOwnProperty.call(boxingFighters, button.dataset.boxingFighter)) return;
-      selectedBoxingFighter = button.dataset.boxingFighter;
-      try {
-        localStorage.setItem(boxingFighterStorageKey, selectedBoxingFighter);
-      } catch {
-        // The choice still applies for this visit if browser storage is unavailable.
-      }
-      boxingRender();
-    });
-  });
   boxingActions.forEach((button) => {
     button.addEventListener("click", () => boxingHandleAction(button.dataset.boxingAction));
   });
