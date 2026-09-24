@@ -1397,3 +1397,417 @@ button {
     font-size: 20px;
   }
 }
+
+.boxing-game {
+  padding: 112px 0 145px;
+  border-top: 1px solid var(--line);
+}
+
+.boxing-game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+  gap: 18px;
+}
+
+.boxing-arena,
+.boxing-controls-panel {
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: #111614;
+}
+
+.boxing-arena {
+  position: relative;
+  display: flex;
+  min-height: 480px;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 22px 24px 17px;
+  background:
+    radial-gradient(ellipse at 50% 62%, rgba(159, 200, 223, 0.16), transparent 47%),
+    linear-gradient(155deg, #18211e, #0c100f 74%);
+}
+
+.boxing-arena::before {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  width: 1px;
+  height: 62%;
+  background: rgba(245, 243, 235, 0.08);
+  content: "";
+}
+
+.boxing-arena-top,
+.boxing-rope-labels {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.boxing-arena-top > span:last-child {
+  color: var(--lime);
+  font-size: 19px;
+  letter-spacing: -0.04em;
+}
+
+.boxing-arena-top small {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
+.boxing-ring {
+  position: relative;
+  flex: 1;
+  min-height: 365px;
+  overflow: hidden;
+}
+
+.boxing-ring::before {
+  position: absolute;
+  right: 7%;
+  bottom: 8%;
+  left: 7%;
+  height: 47%;
+  border: 1px solid rgba(159, 200, 223, 0.37);
+  background: linear-gradient(180deg, rgba(159, 200, 223, 0.08), rgba(159, 200, 223, 0.015));
+  content: "";
+  transform: perspective(280px) rotateX(14deg);
+}
+
+.boxing-ring-rope {
+  position: absolute;
+  right: -5%;
+  left: -5%;
+  z-index: 1;
+  height: 1px;
+  background: rgba(245, 243, 235, 0.28);
+  transform: rotate(-3deg);
+}
+
+.boxing-ring-rope-top {
+  top: 43%;
+}
+
+.boxing-ring-rope-bottom {
+  top: 60%;
+}
+
+.boxing-fighter {
+  position: absolute;
+  bottom: 7%;
+  z-index: 2;
+  width: min(39%, 225px);
+  overflow: visible;
+  transform-origin: 50% 100%;
+  transition: filter 180ms ease;
+}
+
+.boxing-fighter-player {
+  left: 6%;
+}
+
+.boxing-fighter-opponent {
+  right: 6%;
+  transform: scaleX(-1);
+}
+
+.boxing-arena[data-phase="incoming"] .boxing-fighter-opponent {
+  animation: boxing-swing 420ms ease-in-out infinite alternate;
+}
+
+.boxing-arena[data-phase="incoming"][data-guarded="true"] .boxing-fighter-player {
+  filter: drop-shadow(0 0 12px rgba(216, 243, 106, 0.65));
+}
+
+.boxing-arena[data-phase="open"] .boxing-fighter-player {
+  animation: boxing-counter 500ms ease-in-out infinite alternate;
+}
+
+.boxing-arena[data-phase="hit"] .boxing-fighter-player {
+  filter: drop-shadow(0 0 15px rgba(243, 162, 139, 0.8));
+}
+
+.boxing-arena[data-phase="win"] .boxing-fighter-player {
+  filter: drop-shadow(0 0 17px rgba(216, 243, 106, 0.85));
+}
+
+.boxing-arena[data-phase="lose"] .boxing-fighter-player {
+  filter: grayscale(0.75);
+}
+
+.boxing-cue {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  z-index: 3;
+  width: max-content;
+  max-width: calc(100% - 28px);
+  padding: 12px 17px;
+  border: 1px solid rgba(245, 243, 235, 0.22);
+  color: var(--ink);
+  background: rgba(9, 11, 10, 0.9);
+  font-family: var(--mono);
+  font-size: clamp(10px, 1.2vw, 13px);
+  letter-spacing: 0.09em;
+  text-align: center;
+  text-transform: uppercase;
+  transform: translate(-50%, -50%);
+}
+
+.boxing-arena[data-phase="incoming"] .boxing-cue {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+
+.boxing-arena[data-phase="open"] .boxing-cue,
+.boxing-arena[data-phase="win"] .boxing-cue {
+  border-color: var(--lime);
+  color: var(--lime);
+}
+
+.boxing-rope-labels {
+  color: #75817a;
+  font-size: 9px;
+}
+
+.boxing-controls-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 26px;
+}
+
+.boxing-health {
+  display: grid;
+  gap: 17px;
+}
+
+.boxing-meter-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.boxing-meter-label strong {
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.boxing-meter-track {
+  height: 5px;
+  overflow: hidden;
+  background: #29312d;
+}
+
+.boxing-meter-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: width 220ms ease;
+}
+
+.boxing-player-health {
+  background: var(--lime);
+}
+
+.boxing-opponent-health {
+  background: var(--blue);
+}
+
+.boxing-stamina {
+  background: var(--coral);
+}
+
+.boxing-score-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 24px 0 20px;
+  padding: 15px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.boxing-score-row div {
+  display: grid;
+  gap: 5px;
+}
+
+.boxing-score-row span {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.boxing-score-row strong {
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.06em;
+}
+
+.boxing-game-status {
+  min-height: 42px;
+  margin: 0 0 15px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.boxing-start {
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.boxing-start:disabled {
+  cursor: progress;
+  opacity: 0.65;
+  transform: none;
+}
+
+.boxing-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.boxing-action {
+  display: grid;
+  min-height: 62px;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: #0d100f;
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease, transform 140ms ease;
+}
+
+.boxing-action strong {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.boxing-action small {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 8px;
+}
+
+.boxing-action:hover:not(:disabled),
+.boxing-action:focus-visible:not(:disabled) {
+  border-color: var(--lime);
+  color: var(--lime);
+  transform: translateY(-2px);
+}
+
+.boxing-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.boxing-block {
+  border-color: rgba(243, 162, 139, 0.5);
+}
+
+.boxing-game-help {
+  margin: 15px 0 0;
+  color: #75817a;
+  font-family: var(--mono);
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+@keyframes boxing-swing {
+  from {
+    transform: scaleX(-1) rotate(-2deg) translateX(0);
+  }
+  to {
+    transform: scaleX(-1) rotate(2deg) translateX(-8px);
+  }
+}
+
+@keyframes boxing-counter {
+  from {
+    transform: translateX(0) scale(1);
+  }
+  to {
+    transform: translateX(7px) scale(1.025);
+  }
+}
+
+@media (max-width: 800px) {
+  .boxing-game {
+    padding: 85px 0 100px;
+  }
+
+  .boxing-game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .boxing-arena {
+    min-height: 430px;
+  }
+
+  .boxing-ring {
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 520px) {
+  .boxing-arena {
+    min-height: 365px;
+    padding: 18px 15px 14px;
+  }
+
+  .boxing-ring {
+    min-height: 270px;
+  }
+
+  .boxing-fighter {
+    width: 44%;
+    bottom: 6%;
+  }
+
+  .boxing-fighter-player {
+    left: 1%;
+  }
+
+  .boxing-fighter-opponent {
+    right: 1%;
+  }
+
+  .boxing-controls-panel {
+    padding: 21px;
+  }
+
+  .boxing-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boxing-fighter,
+  .boxing-action,
+  .boxing-meter-fill {
+    animation: none !important;
+    transition: none;
+  }
+}

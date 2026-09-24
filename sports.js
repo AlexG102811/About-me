@@ -320,3 +320,226 @@ document.querySelector("[data-pitching-reset]")?.addEventListener("click", () =>
 });
 
 document.querySelector("#sports-year").textContent = new Date().getFullYear();
+
+const boxingGameRoot = document.querySelector("#boxing-game");
+
+if (boxingGameRoot) {
+  const boxingArena = document.querySelector("#boxing-arena");
+  const boxingCue = document.querySelector("#boxing-cue");
+  const boxingTime = document.querySelector("#boxing-time");
+  const boxingStatus = document.querySelector("#boxing-game-status");
+  const boxingStart = document.querySelector("#boxing-start");
+  const boxingActions = [...document.querySelectorAll("[data-boxing-action]")];
+  const boxingMoves = {
+    jab: { label: "Jab", damage: 7, stamina: 10 },
+    cross: { label: "Cross", damage: 12, stamina: 20 },
+    hook: { label: "Hook", damage: 19, stamina: 32 },
+  };
+  const boxingStorageKey = "about-me-boxing-best-score";
+  let bestScore = 0;
+  try {
+    bestScore = Math.max(0, Number.parseInt(localStorage.getItem(boxingStorageKey), 10) || 0);
+  } catch {
+    bestScore = 0;
+  }
+
+  const boxingState = {
+    active: false,
+    phase: "ready",
+    time: 45,
+    playerHealth: 100,
+    opponentHealth: 100,
+    stamina: 100,
+    score: 0,
+    guarded: false,
+    actionTaken: false,
+  };
+
+  let boxingInterval = null;
+  let boxingTimeouts = [];
+
+  const boxingSetTimeout = (callback, delay) => {
+    const timeout = window.setTimeout(() => {
+      boxingTimeouts = boxingTimeouts.filter((item) => item !== timeout);
+      callback();
+    }, delay);
+    boxingTimeouts.push(timeout);
+  };
+
+  const boxingClearTimers = () => {
+    if (boxingInterval !== null) window.clearInterval(boxingInterval);
+    boxingInterval = null;
+    boxingTimeouts.forEach((timeout) => window.clearTimeout(timeout));
+    boxingTimeouts = [];
+  };
+
+  const boxingSetPhase = (phase, cue, status) => {
+    boxingState.phase = phase;
+    boxingArena.dataset.phase = phase;
+    boxingArena.dataset.guarded = String(boxingState.guarded);
+    boxingCue.textContent = cue;
+    boxingStatus.textContent = status;
+    boxingRender();
+  };
+
+  const boxingRender = () => {
+    document.querySelector("#boxing-player-health").style.width = `${boxingState.playerHealth}%`;
+    document.querySelector("#boxing-player-health-label").textContent = `${boxingState.playerHealth}%`;
+    document.querySelector("#boxing-opponent-health").style.width = `${boxingState.opponentHealth}%`;
+    document.querySelector("#boxing-opponent-health-label").textContent = `${boxingState.opponentHealth}%`;
+    document.querySelector("#boxing-stamina").style.width = `${boxingState.stamina}%`;
+    document.querySelector("#boxing-stamina-label").textContent = `${boxingState.stamina}%`;
+    document.querySelector("#boxing-score").textContent = boxingState.score;
+    document.querySelector("#boxing-best-score").textContent = bestScore;
+    boxingTime.textContent = boxingState.time;
+
+    boxingActions.forEach((button) => {
+      const action = button.dataset.boxingAction;
+      if (action === "block") {
+        button.disabled = !boxingState.active || boxingState.phase !== "incoming" || boxingState.guarded;
+      } else {
+        button.disabled = !boxingState.active || boxingState.phase !== "open" || boxingState.actionTaken;
+      }
+    });
+    boxingStart.disabled = boxingState.active;
+  };
+
+  const boxingFinish = (result) => {
+    if (!boxingState.active) return;
+    boxingState.active = false;
+    boxingClearTimers();
+    if (boxingState.score > bestScore) {
+      bestScore = boxingState.score;
+      try {
+        localStorage.setItem(boxingStorageKey, String(bestScore));
+      } catch {
+        // Keep the session score even when browser storage is unavailable.
+      }
+    }
+
+    if (result === "win") {
+      boxingSetPhase("win", "Training win", `Great round — you scored ${boxingState.score} points.`);
+    } else if (result === "loss") {
+      boxingSetPhase("lose", "Round stopped", `You scored ${boxingState.score} points. Take a breath and try again.`);
+    } else {
+      boxingSetPhase("timeout", "Time", `Round complete — you scored ${boxingState.score} points.`);
+    }
+    boxingStart.textContent = "Play again ↗";
+    boxingStart.disabled = false;
+    boxingRender();
+  };
+
+  const boxingBeginOpening = () => {
+    if (!boxingState.active) return;
+    boxingState.actionTaken = false;
+    boxingSetPhase("open", "OPEN — COUNTER", "The opening is yours. Choose one punch now.");
+    boxingSetTimeout(() => {
+      if (boxingState.active) boxingBeginExchange();
+    }, 1250);
+  };
+
+  const boxingBeginIncoming = () => {
+    if (!boxingState.active) return;
+    const attack = ["Jab", "Cross", "Hook"][Math.floor(Math.random() * 3)];
+    const damage = 11 + Math.floor(Math.random() * 7);
+    boxingState.guarded = false;
+    boxingSetPhase("incoming", `${attack} incoming`, "Block now — press Space or tap Block.");
+    boxingSetTimeout(() => {
+      if (!boxingState.active) return;
+      if (boxingState.guarded) {
+        boxingSetPhase("blocked", "Blocked", "Nice defense. Get ready to counter.");
+      } else {
+        boxingState.playerHealth = Math.max(0, boxingState.playerHealth - damage);
+        boxingSetPhase("hit", `-${damage} guard`, "You took a shot. Look for the next opening.");
+        if (boxingState.playerHealth <= 0) {
+          boxingFinish("loss");
+          return;
+        }
+      }
+      boxingSetTimeout(boxingBeginOpening, 430);
+    }, 900);
+  };
+
+  const boxingBeginExchange = () => {
+    if (!boxingState.active) return;
+    boxingState.guarded = false;
+    boxingState.actionTaken = false;
+    boxingState.stamina = Math.min(100, boxingState.stamina + 18);
+    boxingSetPhase("reset", "Reset your stance", "Read the next cue.");
+    boxingSetTimeout(boxingBeginIncoming, 650);
+  };
+
+  const boxingStartRound = () => {
+    boxingClearTimers();
+    boxingState.active = true;
+    boxingState.time = 45;
+    boxingState.playerHealth = 100;
+    boxingState.opponentHealth = 100;
+    boxingState.stamina = 100;
+    boxingState.score = 0;
+    boxingState.guarded = false;
+    boxingState.actionTaken = false;
+    boxingStart.textContent = "Round in progress";
+    boxingSetPhase("reset", "Round started", "Block incoming shots, then counter when OPEN.");
+
+    boxingInterval = window.setInterval(() => {
+      if (!boxingState.active) return;
+      boxingState.time = Math.max(0, boxingState.time - 1);
+      boxingRender();
+      if (boxingState.time === 0) boxingFinish("time");
+    }, 1000);
+
+    boxingBeginExchange();
+  };
+
+  const boxingHandleAction = (action) => {
+    if (!boxingState.active) return;
+
+    if (action === "block") {
+      if (boxingState.phase !== "incoming" || boxingState.guarded) return;
+      boxingState.guarded = true;
+      boxingArena.dataset.guarded = "true";
+      boxingCue.textContent = "Guard up";
+      boxingStatus.textContent = "Good read. Hold your guard through the shot.";
+      boxingRender();
+      return;
+    }
+
+    const move = boxingMoves[action];
+    if (!move || boxingState.phase !== "open" || boxingState.actionTaken) return;
+    if (boxingState.stamina < move.stamina) {
+      boxingStatus.textContent = "Not enough stamina for that punch. Try a Jab.";
+      return;
+    }
+
+    boxingState.actionTaken = true;
+    boxingState.stamina = Math.max(0, boxingState.stamina - move.stamina);
+    boxingState.opponentHealth = Math.max(0, boxingState.opponentHealth - move.damage);
+    boxingState.score += move.damage * 10;
+    boxingSetPhase("open", `${move.label} lands`, `${move.label} connects for ${move.damage}. Recover stamina between exchanges.`);
+    if (boxingState.opponentHealth <= 0) boxingFinish("win");
+  };
+
+  boxingStart.addEventListener("click", boxingStartRound);
+  boxingActions.forEach((button) => {
+    button.addEventListener("click", () => boxingHandleAction(button.dataset.boxingAction));
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (!boxingState.active) return;
+    if (event.target instanceof HTMLElement && event.target.matches("input, textarea, select, [contenteditable='true']")) return;
+
+    const keyActions = {
+      Space: "block",
+      KeyJ: "jab",
+      KeyK: "cross",
+      KeyL: "hook",
+    };
+    const action = keyActions[event.code];
+    if (!action) return;
+    event.preventDefault();
+    boxingHandleAction(action);
+  });
+
+  boxingRender();
+}
