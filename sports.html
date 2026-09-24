@@ -198,6 +198,90 @@
             </div>
           </section>
         </section>
+
+        <section class="boxing-game" id="boxing-game" aria-labelledby="boxing-title">
+          <div class="baseball-section-heading">
+            <div>
+              <p class="sports-section-label"><span>03</span> Boxing / Reflex game</p>
+              <h2 id="boxing-title">Step into<br /><em>the ring.</em></h2>
+            </div>
+            <p>Read the incoming cue, block the shot, then counter during the opening. A quick training round you can play with buttons or keys.</p>
+          </div>
+
+          <div class="boxing-game-layout">
+            <div class="boxing-arena" id="boxing-arena" data-phase="ready" aria-hidden="true">
+              <div class="boxing-arena-top">
+                <span>Training round</span>
+                <span><span id="boxing-time">45</span><small> sec</small></span>
+              </div>
+              <div class="boxing-ring">
+                <div class="boxing-ring-rope boxing-ring-rope-top"></div>
+                <div class="boxing-ring-rope boxing-ring-rope-bottom"></div>
+                <svg class="boxing-fighter boxing-fighter-player" viewBox="0 0 230 250" role="presentation">
+                  <circle cx="107" cy="48" r="27" fill="#d8f36a" />
+                  <path d="M80 83 Q107 69 134 83 L151 158 Q107 180 63 158 Z" fill="#d8f36a" />
+                  <path d="M82 97 L48 133 L27 116 M132 97 L164 119 L184 99" fill="none" stroke="#d8f36a" stroke-linecap="round" stroke-width="18" />
+                  <circle cx="25" cy="114" r="18" fill="#f3a28b" />
+                  <circle cx="186" cy="97" r="18" fill="#f3a28b" />
+                  <path d="M78 158 L68 224 M137 158 L150 224" fill="none" stroke="#d8f36a" stroke-linecap="round" stroke-width="19" />
+                  <path d="M68 224 L45 233 M150 224 L174 233" fill="none" stroke="#f3a28b" stroke-linecap="round" stroke-width="14" />
+                </svg>
+                <svg class="boxing-fighter boxing-fighter-opponent" viewBox="0 0 230 250" role="presentation">
+                  <circle cx="107" cy="48" r="27" fill="#9fc8df" />
+                  <path d="M80 83 Q107 69 134 83 L151 158 Q107 180 63 158 Z" fill="#9fc8df" />
+                  <path d="M82 97 L48 119 L27 99 M132 97 L164 133 L184 116" fill="none" stroke="#9fc8df" stroke-linecap="round" stroke-width="18" />
+                  <circle cx="25" cy="97" r="18" fill="#cdb9e9" />
+                  <circle cx="186" cy="114" r="18" fill="#cdb9e9" />
+                  <path d="M78 158 L68 224 M137 158 L150 224" fill="none" stroke="#9fc8df" stroke-linecap="round" stroke-width="19" />
+                  <path d="M68 224 L45 233 M150 224 L174 233" fill="none" stroke="#cdb9e9" stroke-linecap="round" stroke-width="14" />
+                </svg>
+                <div class="boxing-cue" id="boxing-cue">Ready when you are</div>
+              </div>
+              <div class="boxing-rope-labels"><span>YOU</span><span>OPPONENT</span></div>
+            </div>
+
+            <div class="boxing-controls-panel">
+              <div class="boxing-health">
+                <div class="boxing-meter">
+                  <div class="boxing-meter-label"><span>Your guard</span><strong id="boxing-player-health-label">100%</strong></div>
+                  <div class="boxing-meter-track"><span class="boxing-meter-fill boxing-player-health" id="boxing-player-health"></span></div>
+                </div>
+                <div class="boxing-meter">
+                  <div class="boxing-meter-label"><span>Opponent</span><strong id="boxing-opponent-health-label">100%</strong></div>
+                  <div class="boxing-meter-track"><span class="boxing-meter-fill boxing-opponent-health" id="boxing-opponent-health"></span></div>
+                </div>
+                <div class="boxing-meter">
+                  <div class="boxing-meter-label"><span>Stamina</span><strong id="boxing-stamina-label">100%</strong></div>
+                  <div class="boxing-meter-track"><span class="boxing-meter-fill boxing-stamina" id="boxing-stamina"></span></div>
+                </div>
+              </div>
+
+              <div class="boxing-score-row">
+                <div><span>Round score</span><strong id="boxing-score">0</strong></div>
+                <div><span>Best</span><strong id="boxing-best-score">0</strong></div>
+              </div>
+
+              <p class="boxing-game-status" id="boxing-game-status" role="status" aria-live="polite">Start the round. Block incoming shots, then land a counter.</p>
+              <button class="tracker-button boxing-start" id="boxing-start" type="button">Start round <span aria-hidden="true">↗</span></button>
+
+              <div class="boxing-actions" aria-label="Boxing controls">
+                <button class="boxing-action boxing-block" type="button" data-boxing-action="block" disabled>
+                  <strong>Block</strong><small>SPACE</small>
+                </button>
+                <button class="boxing-action" type="button" data-boxing-action="jab" disabled>
+                  <strong>Jab</strong><small>J</small>
+                </button>
+                <button class="boxing-action" type="button" data-boxing-action="cross" disabled>
+                  <strong>Cross</strong><small>K</small>
+                </button>
+                <button class="boxing-action" type="button" data-boxing-action="hook" disabled>
+                  <strong>Hook</strong><small>L</small>
+                </button>
+              </div>
+              <p class="boxing-game-help">Block during the incoming cue. Counter only when the ring says “OPEN.”</p>
+            </div>
+          </div>
+        </section>
       </main>
 
       <footer class="sports-footer">
@@ -206,6 +290,6 @@
       </footer>
     </div>
 
-    <script src="sports.js?v=baseball-tracker-2"></script>
+    <script src="sports.js?v=boxing-game-1"></script>
   </body>
 </html>
