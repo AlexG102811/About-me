@@ -9,7 +9,7 @@
     />
     <title>Sports — Alex Gomez Ewert</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="sports.css?v=boxing-motion-2" />
+    <link rel="stylesheet" href="sports.css?v=boxing-arcade-3" />
   </head>
   <body>
     <div class="sports-shell">
@@ -202,73 +202,152 @@
         <section class="boxing-game" id="boxing-game" aria-labelledby="boxing-title">
           <div class="baseball-section-heading">
             <div>
-              <p class="sports-section-label"><span>03</span> Boxing / Reflex game</p>
+              <p class="sports-section-label"><span>03</span> 16-bit boxing / arcade</p>
               <h2 id="boxing-title">Step into<br /><em>the ring.</em></h2>
             </div>
             <p>Read the incoming cue, block the shot, then counter during the opening. A quick training round you can play with buttons or keys.</p>
           </div>
 
-          <div class="boxing-game-layout">
-            <div class="boxing-arena" id="boxing-arena" data-phase="ready" aria-hidden="true">
+          <section class="boxing-fighter-select" aria-labelledby="boxing-select-title">
+            <div class="boxing-select-heading">
+              <h3 id="boxing-select-title">Choose your fighter</h3>
+              <small>2 fighter roster</small>
+            </div>
+            <div class="boxing-roster">
+              <button class="boxing-fighter-option is-selected" type="button" data-boxing-fighter="lime" aria-pressed="true">
+                <svg class="boxing-roster-sprite" viewBox="0 0 32 48" shape-rendering="crispEdges" aria-hidden="true">
+                  <rect x="11" y="4" width="10" height="10" fill="#d99170" />
+                  <rect x="9" y="2" width="14" height="5" fill="#342238" />
+                  <rect x="7" y="18" width="18" height="15" fill="#ffdb3b" />
+                  <rect x="2" y="19" width="7" height="7" fill="#ffdb3b" />
+                  <rect x="1" y="26" width="7" height="7" fill="#ef454d" />
+                  <rect x="24" y="19" width="7" height="7" fill="#ffdb3b" />
+                  <rect x="25" y="26" width="7" height="7" fill="#ef454d" />
+                  <rect x="9" y="33" width="6" height="11" fill="#40304e" />
+                  <rect x="18" y="33" width="6" height="11" fill="#40304e" />
+                  <rect x="6" y="43" width="10" height="4" fill="#eee7d4" />
+                  <rect x="17" y="43" width="10" height="4" fill="#eee7d4" />
+                </svg>
+                <span class="boxing-fighter-option-copy">
+                  <small>01 / LIME CORNER</small>
+                  <strong>The Contender</strong>
+                </span>
+                <span class="boxing-selected-label">Selected</span>
+              </button>
+              <button class="boxing-fighter-option" type="button" data-boxing-fighter="blue" aria-pressed="false">
+                <svg class="boxing-roster-sprite" viewBox="0 0 32 48" shape-rendering="crispEdges" aria-hidden="true">
+                  <rect x="11" y="4" width="10" height="10" fill="#d99170" />
+                  <rect x="9" y="2" width="14" height="5" fill="#342238" />
+                  <rect x="7" y="18" width="18" height="15" fill="#3268dc" />
+                  <rect x="2" y="19" width="7" height="7" fill="#3268dc" />
+                  <rect x="1" y="26" width="7" height="7" fill="#f3eee0" />
+                  <rect x="24" y="19" width="7" height="7" fill="#3268dc" />
+                  <rect x="25" y="26" width="7" height="7" fill="#f3eee0" />
+                  <rect x="9" y="33" width="6" height="11" fill="#342238" />
+                  <rect x="18" y="33" width="6" height="11" fill="#342238" />
+                  <rect x="6" y="43" width="10" height="4" fill="#eee7d4" />
+                  <rect x="17" y="43" width="10" height="4" fill="#eee7d4" />
+                </svg>
+                <span class="boxing-fighter-option-copy">
+                  <small>02 / BLUE CORNER</small>
+                  <strong>The Challenger</strong>
+                </span>
+                <span class="boxing-selected-label">Selected</span>
+              </button>
+            </div>
+          </section>
+
+          <div class="boxing-game-layout" data-player-fighter="lime">
+            <div class="boxing-arena" id="boxing-arena" data-phase="ready" data-player-action="none">
               <div class="boxing-arena-top">
-                <span>Training round</span>
-                <span><span id="boxing-time">45</span><small> sec</small></span>
+                <div class="boxing-fighter-hud">
+                  <div class="boxing-fighter-hud-name">
+                    <span>1P</span>
+                    <strong id="boxing-player-name">The Contender</strong>
+                    <b id="boxing-player-health-label">100%</b>
+                  </div>
+                  <div class="boxing-meter-track" id="boxing-player-health-track" role="progressbar" aria-label="Player health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+                    <span class="boxing-meter-fill boxing-player-health" id="boxing-player-health"></span>
+                  </div>
+                </div>
+
+                <div class="boxing-arcade-readout">
+                  <span class="boxing-round-readout">ROUND <strong>01</strong></span>
+                  <span class="boxing-time-readout">TIME <strong><span id="boxing-time">45</span></strong></span>
+                  <span class="boxing-score-readout">PTS <strong id="boxing-score">0</strong></span>
+                  <span class="boxing-best-readout">BEST <strong id="boxing-best-score">0</strong></span>
+                </div>
+
+                <div class="boxing-fighter-hud boxing-fighter-hud-opponent">
+                  <div class="boxing-fighter-hud-name">
+                    <span>CPU</span>
+                    <strong id="boxing-opponent-name">The Challenger</strong>
+                    <b id="boxing-opponent-health-label">100%</b>
+                  </div>
+                  <div class="boxing-meter-track" id="boxing-opponent-health-track" role="progressbar" aria-label="Opponent health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+                    <span class="boxing-meter-fill boxing-opponent-health" id="boxing-opponent-health"></span>
+                  </div>
+                </div>
               </div>
-              <div class="boxing-ring">
+
+              <div class="boxing-ring" aria-hidden="true">
                 <div class="boxing-ring-rope boxing-ring-rope-top"></div>
                 <div class="boxing-ring-rope boxing-ring-rope-bottom"></div>
-                <svg class="boxing-fighter boxing-fighter-player" viewBox="0 0 230 250" role="presentation">
-                  <circle cx="107" cy="48" r="27" fill="#d8f36a" />
-                  <path d="M80 83 Q107 69 134 83 L151 158 Q107 180 63 158 Z" fill="#d8f36a" />
+                <svg class="boxing-fighter boxing-fighter-player" viewBox="0 0 230 250" shape-rendering="crispEdges" role="presentation">
+                  <rect x="83" y="27" width="48" height="43" fill="#d99170" />
+                  <rect x="79" y="22" width="56" height="15" fill="#342238" />
+                  <rect x="74" y="32" width="10" height="18" fill="#342238" />
+                  <rect x="97" y="48" width="7" height="5" fill="#211a2c" />
+                  <rect x="116" y="48" width="7" height="5" fill="#211a2c" />
+                  <rect x="101" y="68" width="21" height="13" fill="#d99170" />
+                  <path d="M77 81H137V91H151V150H140V163H70V151H59V92H73V81Z" fill="var(--boxing-player-suit)" />
+                  <path d="M70 145H140V169H121V161H86V169H70Z" fill="#342238" />
+                  <rect x="69" y="139" width="71" height="7" fill="#ffdb3b" />
                   <g class="boxing-arm boxing-arm-left">
-                    <path d="M82 97 L48 133 L27 116" fill="none" stroke="#d8f36a" stroke-linecap="round" stroke-width="18" />
-                    <circle cx="25" cy="114" r="18" fill="#f3a28b" />
+                    <path d="M78 91H64V101H52V115H38V106H23V121H37V137H53V127H66V114H79Z" fill="var(--boxing-player-suit)" />
+                    <rect x="17" y="103" width="24" height="26" fill="var(--boxing-player-gloves)" />
                   </g>
                   <g class="boxing-arm boxing-arm-right">
-                    <path d="M132 97 L164 119 L184 99" fill="none" stroke="#d8f36a" stroke-linecap="round" stroke-width="18" />
-                    <circle cx="186" cy="97" r="18" fill="#f3a28b" />
+                    <path d="M136 91H151V101H163V113H178V101H194V117H182V136H166V126H153V114H136Z" fill="var(--boxing-player-suit)" />
+                    <rect x="180" y="94" width="28" height="27" fill="var(--boxing-player-gloves)" />
                   </g>
-                  <path d="M78 158 L68 224 M137 158 L150 224" fill="none" stroke="#d8f36a" stroke-linecap="round" stroke-width="19" />
-                  <path d="M68 224 L45 233 M150 224 L174 233" fill="none" stroke="#f3a28b" stroke-linecap="round" stroke-width="14" />
+                  <path d="M71 160H98V199H89V220H66V210H74V195H71Z M112 160H139V195H132V210H156V220H119V200H112Z" fill="#342238" />
+                  <rect x="62" y="217" width="30" height="13" fill="#eee7d4" />
+                  <rect x="119" y="217" width="39" height="13" fill="#eee7d4" />
                 </svg>
-                <svg class="boxing-fighter boxing-fighter-opponent" viewBox="0 0 230 250" role="presentation">
-                  <circle cx="107" cy="48" r="27" fill="#9fc8df" />
-                  <path d="M80 83 Q107 69 134 83 L151 158 Q107 180 63 158 Z" fill="#9fc8df" />
+                <svg class="boxing-fighter boxing-fighter-opponent" viewBox="0 0 230 250" shape-rendering="crispEdges" role="presentation">
+                  <rect x="83" y="27" width="48" height="43" fill="#d99170" />
+                  <rect x="79" y="22" width="56" height="15" fill="#29213b" />
+                  <rect x="130" y="31" width="9" height="20" fill="#29213b" />
+                  <rect x="97" y="48" width="7" height="5" fill="#211a2c" />
+                  <rect x="116" y="48" width="7" height="5" fill="#211a2c" />
+                  <rect x="101" y="68" width="21" height="13" fill="#d99170" />
+                  <path d="M77 81H137V91H151V150H140V163H70V151H59V92H73V81Z" fill="var(--boxing-opponent-suit)" />
+                  <path d="M70 145H140V169H121V161H86V169H70Z" fill="#29213b" />
+                  <rect x="69" y="139" width="71" height="7" fill="#f3eee0" />
                   <g class="boxing-arm boxing-arm-left">
-                    <path d="M82 97 L48 119 L27 99" fill="none" stroke="#9fc8df" stroke-linecap="round" stroke-width="18" />
-                    <circle cx="25" cy="97" r="18" fill="#cdb9e9" />
+                    <path d="M78 91H64V101H52V115H38V106H23V121H37V137H53V127H66V114H79Z" fill="var(--boxing-opponent-suit)" />
+                    <rect x="17" y="103" width="24" height="26" fill="var(--boxing-opponent-gloves)" />
                   </g>
                   <g class="boxing-arm boxing-arm-right">
-                    <path d="M132 97 L164 133 L184 116" fill="none" stroke="#9fc8df" stroke-linecap="round" stroke-width="18" />
-                    <circle cx="186" cy="114" r="18" fill="#cdb9e9" />
+                    <path d="M136 91H151V101H163V113H178V101H194V117H182V136H166V126H153V114H136Z" fill="var(--boxing-opponent-suit)" />
+                    <rect x="180" y="94" width="28" height="27" fill="var(--boxing-opponent-gloves)" />
                   </g>
-                  <path d="M78 158 L68 224 M137 158 L150 224" fill="none" stroke="#9fc8df" stroke-linecap="round" stroke-width="19" />
-                  <path d="M68 224 L45 233 M150 224 L174 233" fill="none" stroke="#cdb9e9" stroke-linecap="round" stroke-width="14" />
+                  <path d="M71 160H98V199H89V220H66V210H74V195H71Z M112 160H139V195H132V210H156V220H119V200H112Z" fill="#29213b" />
+                  <rect x="62" y="217" width="30" height="13" fill="#eee7d4" />
+                  <rect x="119" y="217" width="39" height="13" fill="#eee7d4" />
                 </svg>
                 <div class="boxing-cue" id="boxing-cue">Ready when you are</div>
               </div>
-              <div class="boxing-rope-labels"><span>YOU</span><span>OPPONENT</span></div>
+              <div class="boxing-rope-labels"><span>PLAYER 1</span><span>PLAYER 2</span></div>
             </div>
 
             <div class="boxing-controls-panel">
               <div class="boxing-health">
                 <div class="boxing-meter">
-                  <div class="boxing-meter-label"><span>Your guard</span><strong id="boxing-player-health-label">100%</strong></div>
-                  <div class="boxing-meter-track"><span class="boxing-meter-fill boxing-player-health" id="boxing-player-health"></span></div>
-                </div>
-                <div class="boxing-meter">
-                  <div class="boxing-meter-label"><span>Opponent</span><strong id="boxing-opponent-health-label">100%</strong></div>
-                  <div class="boxing-meter-track"><span class="boxing-meter-fill boxing-opponent-health" id="boxing-opponent-health"></span></div>
-                </div>
-                <div class="boxing-meter">
                   <div class="boxing-meter-label"><span>Stamina</span><strong id="boxing-stamina-label">100%</strong></div>
-                  <div class="boxing-meter-track"><span class="boxing-meter-fill boxing-stamina" id="boxing-stamina"></span></div>
+                  <div class="boxing-meter-track" id="boxing-stamina-track" role="progressbar" aria-label="Stamina" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><span class="boxing-meter-fill boxing-stamina" id="boxing-stamina"></span></div>
                 </div>
-              </div>
-
-              <div class="boxing-score-row">
-                <div><span>Round score</span><strong id="boxing-score">0</strong></div>
-                <div><span>Best</span><strong id="boxing-best-score">0</strong></div>
               </div>
 
               <p class="boxing-game-status" id="boxing-game-status" role="status" aria-live="polite">Start the round. Block incoming shots, then land a counter.</p>
@@ -288,7 +367,7 @@
                   <strong>Hook</strong><small>L</small>
                 </button>
               </div>
-              <p class="boxing-game-help">Block during the incoming cue. Counter only when the ring says “OPEN.”</p>
+              <p class="boxing-game-help">SPACE / BLOCK &nbsp; · &nbsp; J / JAB &nbsp; · &nbsp; K / CROSS &nbsp; · &nbsp; L / HOOK</p>
             </div>
           </div>
         </section>
@@ -300,6 +379,6 @@
       </footer>
     </div>
 
-    <script src="sports.js?v=boxing-motion-2"></script>
+    <script src="sports.js?v=boxing-arcade-3"></script>
   </body>
 </html>
