@@ -106,19 +106,19 @@
   transition: border-color 180ms ease, transform 180ms ease;
 }
 
-.media-photo-slot:nth-child(1) {
+.media-photo-slot:nth-child(4n + 1) {
   background: var(--media-yellow);
 }
 
-.media-photo-slot:nth-child(2) {
+.media-photo-slot:nth-child(4n + 2) {
   background: var(--sage);
 }
 
-.media-photo-slot:nth-child(3) {
+.media-photo-slot:nth-child(4n + 3) {
   background: var(--coral);
 }
 
-.media-photo-slot:nth-child(4) {
+.media-photo-slot:nth-child(4n) {
   background: var(--media-violet);
 }
 
