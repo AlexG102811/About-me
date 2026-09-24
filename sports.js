@@ -357,6 +357,30 @@ if (boxingGameRoot) {
 
   let boxingInterval = null;
   let boxingTimeouts = [];
+  let boxingActionResetTimer = null;
+  let boxingActionSequence = 0;
+
+  const boxingResetPlayerAction = () => {
+    boxingActionSequence += 1;
+    if (boxingActionResetTimer !== null) window.clearTimeout(boxingActionResetTimer);
+    boxingActionResetTimer = null;
+    boxingArena.dataset.playerAction = "none";
+  };
+
+  const boxingAnimatePlayer = (action, resetAfter = 520) => {
+    boxingResetPlayerAction();
+    const sequence = boxingActionSequence;
+    window.requestAnimationFrame(() => {
+      if (sequence !== boxingActionSequence) return;
+      boxingArena.dataset.playerAction = action;
+      if (resetAfter > 0) {
+        boxingActionResetTimer = window.setTimeout(() => {
+          if (sequence === boxingActionSequence) boxingArena.dataset.playerAction = "none";
+          boxingActionResetTimer = null;
+        }, resetAfter);
+      }
+    });
+  };
 
   const boxingSetTimeout = (callback, delay) => {
     const timeout = window.setTimeout(() => {
@@ -371,6 +395,7 @@ if (boxingGameRoot) {
     boxingInterval = null;
     boxingTimeouts.forEach((timeout) => window.clearTimeout(timeout));
     boxingTimeouts = [];
+    boxingResetPlayerAction();
   };
 
   const boxingSetPhase = (phase, cue, status) => {
@@ -431,6 +456,7 @@ if (boxingGameRoot) {
 
   const boxingBeginOpening = () => {
     if (!boxingState.active) return;
+    boxingResetPlayerAction();
     boxingState.actionTaken = false;
     boxingSetPhase("open", "OPEN — COUNTER", "The opening is yours. Choose one punch now.");
     boxingSetTimeout(() => {
@@ -462,6 +488,7 @@ if (boxingGameRoot) {
 
   const boxingBeginExchange = () => {
     if (!boxingState.active) return;
+    boxingResetPlayerAction();
     boxingState.guarded = false;
     boxingState.actionTaken = false;
     boxingState.stamina = Math.min(100, boxingState.stamina + 18);
@@ -498,6 +525,7 @@ if (boxingGameRoot) {
     if (action === "block") {
       if (boxingState.phase !== "incoming" || boxingState.guarded) return;
       boxingState.guarded = true;
+      boxingAnimatePlayer("block", 0);
       boxingArena.dataset.guarded = "true";
       boxingCue.textContent = "Guard up";
       boxingStatus.textContent = "Good read. Hold your guard through the shot.";
@@ -513,6 +541,7 @@ if (boxingGameRoot) {
     }
 
     boxingState.actionTaken = true;
+    boxingAnimatePlayer(action, action === "hook" ? 580 : 520);
     boxingState.stamina = Math.max(0, boxingState.stamina - move.stamina);
     boxingState.opponentHealth = Math.max(0, boxingState.opponentHealth - move.damage);
     boxingState.score += move.damage * 10;

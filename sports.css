@@ -1520,6 +1520,50 @@ button {
   transform: scaleX(-1);
 }
 
+.boxing-arm {
+  transform-box: view-box;
+}
+
+.boxing-fighter-player .boxing-arm-left {
+  transform-origin: 35.65% 38.8%;
+}
+
+.boxing-fighter-player .boxing-arm-right {
+  transform-origin: 57.4% 38.8%;
+}
+
+.boxing-fighter-opponent .boxing-arm-left {
+  transform-origin: 35.65% 38.8%;
+}
+
+.boxing-fighter-opponent .boxing-arm-right {
+  transform-origin: 57.4% 38.8%;
+}
+
+.boxing-arena[data-player-action="block"] .boxing-arm-left {
+  animation: boxing-guard-left 260ms ease-out forwards;
+}
+
+.boxing-arena[data-player-action="block"] .boxing-arm-right {
+  animation: boxing-guard-right 260ms ease-out forwards;
+}
+
+.boxing-arena[data-player-action="jab"] .boxing-fighter-player .boxing-arm-right {
+  animation: boxing-jab 460ms cubic-bezier(0.2, 0.75, 0.3, 1) both;
+}
+
+.boxing-arena[data-player-action="cross"] .boxing-fighter-player .boxing-arm-left {
+  animation: boxing-cross 500ms cubic-bezier(0.2, 0.75, 0.3, 1) both;
+}
+
+.boxing-arena[data-player-action="hook"] .boxing-fighter-player .boxing-arm-right {
+  animation: boxing-hook 560ms cubic-bezier(0.2, 0.75, 0.3, 1) both;
+}
+
+.boxing-arena[data-phase="incoming"] .boxing-fighter-opponent .boxing-arm-right {
+  animation: boxing-opponent-punch 700ms ease-in-out infinite alternate;
+}
+
 .boxing-arena[data-phase="incoming"] .boxing-fighter-opponent {
   animation: boxing-swing 420ms ease-in-out infinite alternate;
 }
@@ -1753,6 +1797,63 @@ button {
   }
 }
 
+@keyframes boxing-guard-left {
+  to {
+    transform: rotate(72deg);
+  }
+}
+
+@keyframes boxing-guard-right {
+  to {
+    transform: rotate(-75deg);
+  }
+}
+
+@keyframes boxing-jab {
+  32% {
+    transform: translate(34px, -8px) rotate(-18deg);
+  }
+  56% {
+    transform: translate(34px, -8px) rotate(-18deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes boxing-cross {
+  30% {
+    transform: translate(90px, -8px) rotate(-35deg);
+  }
+  54% {
+    transform: translate(90px, -8px) rotate(-35deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes boxing-hook {
+  28% {
+    transform: rotate(-52deg);
+  }
+  56% {
+    transform: translate(25px, -1px) rotate(22deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes boxing-opponent-punch {
+  from {
+    transform: rotate(4deg);
+  }
+  to {
+    transform: translateX(19px) rotate(-20deg);
+  }
+}
+
 @media (max-width: 800px) {
   .boxing-game {
     padding: 85px 0 100px;
@@ -1805,6 +1906,7 @@ button {
 
 @media (prefers-reduced-motion: reduce) {
   .boxing-fighter,
+  .boxing-arm,
   .boxing-action,
   .boxing-meter-fill {
     animation: none !important;
