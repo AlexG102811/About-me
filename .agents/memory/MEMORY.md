@@ -1,0 +1,1 @@
+- [Browser video persistence](browser-video-persistence.md) — persist video Blobs in IndexedDB and preview them by object URL; data URLs break MOV playback and hit localStorage limits.
