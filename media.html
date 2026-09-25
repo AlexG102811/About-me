@@ -172,28 +172,35 @@
         <section class="sport-explore" id="explore" aria-labelledby="explore-media-title">
           <div class="sport-section-heading">
             <div>
-              <p class="sports-section-label"><span>03</span> The collection</p>
+              <p class="sports-section-label"><span>03</span> Choose a frequency</p>
               <h2 id="explore-media-title">What’s<br /><em>on.</em></h2>
+            </div>
+            <div class="sport-filters" role="group" aria-label="Filter media">
+              <button class="sport-filter is-active" type="button" data-filter="all" aria-pressed="true">All</button>
+              <button class="sport-filter" type="button" data-filter="watch" aria-pressed="false">Watch</button>
+              <button class="sport-filter" type="button" data-filter="listen" aria-pressed="false">Listen</button>
+              <button class="sport-filter" type="button" data-filter="read" aria-pressed="false">Read</button>
             </div>
           </div>
           <div class="sport-grid">
-            <article class="sport-card media-card">
+            <article class="sport-card media-card" data-media-type="watch">
               <div class="sport-card-art media-card-film"><span class="sport-card-label">Watch / 01</span><div class="media-film-shape">SCENE<br />ONE</div><span class="sport-card-symbol">↗</span></div>
               <div class="sport-card-info"><div><h3>Film &amp; TV</h3><p>Stories in motion.</p></div><span class="sport-card-index">01</span></div>
             </article>
-            <article class="sport-card media-card">
+            <article class="sport-card media-card" data-media-type="listen">
               <div class="sport-card-art media-card-music"><span class="sport-card-label">Listen / 02</span><div class="media-record-shape"></div><span class="sport-card-symbol">↗</span></div>
               <div class="sport-card-info"><div><h3>Music</h3><p>Press play, stay awhile.</p></div><span class="sport-card-index">02</span></div>
             </article>
-            <article class="sport-card media-card">
+            <article class="sport-card media-card" data-media-type="read">
               <div class="sport-card-art media-card-books"><span class="sport-card-label">Read / 03</span><div class="media-book-shape">TAKE<br />YOUR<br />TIME</div><span class="sport-card-symbol">↗</span></div>
               <div class="sport-card-info"><div><h3>Books &amp; essays</h3><p>Ideas worth carrying.</p></div><span class="sport-card-index">03</span></div>
             </article>
-            <article class="sport-card media-card">
+            <article class="sport-card media-card" data-media-type="listen">
               <div class="sport-card-art media-card-podcasts"><span class="sport-card-label">Listen / 04</span><div class="media-podcast-shape">◉</div><span class="sport-card-symbol">↗</span></div>
               <div class="sport-card-info"><div><h3>Podcasts</h3><p>Good questions, better company.</p></div><span class="sport-card-index">04</span></div>
             </article>
           </div>
+          <p class="sport-empty" aria-live="polite" hidden>Nothing in this frequency yet.</p>
         </section>
 
         <section class="sports-ritual media-rotation" aria-labelledby="rotation-title">

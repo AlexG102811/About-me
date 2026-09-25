@@ -1,5 +1,8 @@
 const mediaMenuToggle = document.querySelector(".sports-menu-toggle");
 const mediaNav = document.querySelector(".sports-nav");
+const mediaFilters = document.querySelectorAll(".sport-filter");
+const mediaCards = document.querySelectorAll(".media-card");
+const mediaEmpty = document.querySelector(".sport-empty");
 const mediaPhotoSlots = document.querySelectorAll("[data-photo-slot]");
 const mediaVideoSlots = document.querySelectorAll("[data-video-slot]");
 const mediaVideoStatus = document.querySelector("[data-video-status]");
@@ -107,6 +110,27 @@ mediaNav?.querySelectorAll("a").forEach((link) => {
     mediaNav.classList.remove("is-open");
     mediaMenuToggle?.setAttribute("aria-expanded", "false");
     mediaMenuToggle?.setAttribute("aria-label", "Open navigation");
+  });
+});
+
+mediaFilters.forEach((filter) => {
+  filter.addEventListener("click", () => {
+    const selectedFilter = filter.dataset.filter;
+    let visibleCards = 0;
+
+    mediaFilters.forEach((item) => {
+      const isActive = item === filter;
+      item.classList.toggle("is-active", isActive);
+      item.setAttribute("aria-pressed", String(isActive));
+    });
+
+    mediaCards.forEach((card) => {
+      const shouldShow = selectedFilter === "all" || card.dataset.mediaType === selectedFilter;
+      card.classList.toggle("is-hidden", !shouldShow);
+      if (shouldShow) visibleCards += 1;
+    });
+
+    mediaEmpty.hidden = visibleCards > 0;
   });
 });
 
