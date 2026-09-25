@@ -102,6 +102,29 @@
   line-height: 1.75;
 }
 
+.contact-email-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 21px;
+  color: var(--lime);
+  font-family: var(--mono);
+  font-size: 10px;
+  transition: color 180ms ease;
+}
+
+.contact-email-link[hidden] {
+  display: none;
+}
+
+.contact-email-link:hover {
+  color: var(--blue);
+}
+
+.contact-email-link span:last-child {
+  font-size: 14px;
+}
+
 .contact-aside {
   display: grid;
   grid-template-columns: 43px 1fr;

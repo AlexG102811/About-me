@@ -23,6 +23,7 @@ const profileDefaults = {
   intro: "I’m a high school student who plays baseball, loves gaming, and enjoys spending time with friends.",
   about: "I care about the details people feel but don’t always notice: the right words, the natural interaction, the moment a product simply makes sense.",
   contactNote: "I’m always open to a thoughtful conversation, a new collaboration, or a great excuse to make something.",
+  email: "hello@example.com",
 };
 
 const previousIntroDefault = "I’m a designer and builder who turns complex ideas into clear, considered digital experiences.";
@@ -63,6 +64,9 @@ const renderProfile = (profile) => {
   document.querySelector(".brand-name").textContent = profile.name;
   document.querySelector(".brand-name").setAttribute("aria-label", `${profile.name} home`);
   brandInitials.textContent = getInitials(profile.name);
+  document.querySelectorAll("[data-profile-email-link]").forEach((element) => {
+    element.href = `mailto:${profile.email.trim()}`;
+  });
   document.title = `${profile.name} — Designer & Builder`;
 
   Object.entries(profile).forEach(([key, value]) => {

@@ -19,9 +19,9 @@
       <header class="site-header">
         <div class="brand">
           <a class="brand-mark" href="index.html" aria-label="Alex Gomez Ewert home">
-            <span aria-hidden="true">AGE</span>
+            <span aria-hidden="true" data-contact-initials>AGE</span>
           </a>
-          <a class="brand-name" href="index.html">Alex Gomez Ewert</a>
+          <a class="brand-name" href="index.html" data-contact-name>Alex Gomez Ewert</a>
         </div>
 
         <button
@@ -63,6 +63,9 @@
                 Have a question, an idea, or just want to say hi? I’d be glad to hear from you.
                 Leave a message here and I’ll get back to you.
               </p>
+              <a class="contact-email-link" data-contact-email-link hidden>
+                Prefer email? <span data-contact-email></span><span aria-hidden="true">↗</span>
+              </a>
 
               <div class="contact-aside">
                 <span class="contact-aside-mark" aria-hidden="true">AGE</span>
@@ -127,7 +130,7 @@
                   <button class="button button-primary contact-page-submit" type="submit">
                     <span>Send message</span><span aria-hidden="true">↗</span>
                   </button>
-                  <span class="contact-submit-note">Your note goes straight to my inbox.</span>
+                  <span class="contact-submit-note">Your note lands in the site inbox.</span>
                 </div>
                 <p class="contact-page-status" id="contact-form-status" role="status" aria-live="polite"></p>
               </form>
@@ -146,7 +149,7 @@
       </main>
 
       <footer class="site-footer section-wrap">
-        <span>© <span id="year"></span> Alex Gomez Ewert</span>
+        <span>© <span id="year"></span> <span data-contact-name>Alex Gomez Ewert</span></span>
         <span>A small corner of the internet.</span>
         <a href="#main-content">Back to top ↑</a>
       </footer>

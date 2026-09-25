@@ -7,6 +7,36 @@ const year = document.querySelector("#year");
 
 if (year) year.textContent = new Date().getFullYear();
 
+const defaultContactProfile = { name: "Alex Gomez Ewert", email: "hello@example.com" };
+let contactProfile = defaultContactProfile;
+try {
+  contactProfile = { ...defaultContactProfile, ...JSON.parse(localStorage.getItem("about-me-profile")) };
+} catch {
+  contactProfile = defaultContactProfile;
+}
+
+const contactName = contactProfile.name?.trim();
+if (contactName && contactName !== "Your Name") {
+  document.querySelectorAll("[data-contact-name]").forEach((element) => {
+    element.textContent = contactName;
+  });
+  const brandMark = document.querySelector(".brand-mark");
+  brandMark?.setAttribute("aria-label", `${contactName} home`);
+  document.title = `Contact — ${contactName}`;
+  const initials = contactName.split(/\s+/).filter(Boolean).slice(0, 3).map((part) => part[0]).join("").toUpperCase();
+  const initialsElement = document.querySelector("[data-contact-initials]");
+  if (initialsElement) initialsElement.textContent = initials || "AGE";
+}
+
+const contactEmail = contactProfile.email?.trim();
+const emailLink = document.querySelector("[data-contact-email-link]");
+const emailText = document.querySelector("[data-contact-email]");
+if (contactEmail && contactEmail !== "hello@example.com" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+  emailLink.href = `mailto:${contactEmail}`;
+  emailText.textContent = contactEmail;
+  emailLink.hidden = false;
+}
+
 menuToggle?.addEventListener("click", () => {
   const isOpen = menuToggle.classList.toggle("is-open");
   siteNav?.classList.toggle("is-open", isOpen);
