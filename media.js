@@ -5,6 +5,7 @@ const mediaCards = document.querySelectorAll(".media-card");
 const mediaEmpty = document.querySelector(".sport-empty");
 const mediaPhotoSlots = document.querySelectorAll("[data-photo-slot]");
 const mediaVideoSlots = document.querySelectorAll("[data-video-slot]");
+const mediaVideoStatus = document.querySelector("[data-video-status]");
 const mediaPhotoStorageKey = "about-me-media-photos";
 const mediaVideoStorageKey = "about-me-media-videos";
 const mediaVideoDefaults = [
