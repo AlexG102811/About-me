@@ -205,6 +205,10 @@
   object-fit: cover;
 }
 
+.future-card-photo-landscape {
+  aspect-ratio: 3 / 2;
+}
+
 .future-card-body-copy .future-card-symbol {
   margin-bottom: 12px;
 }
