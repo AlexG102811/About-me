@@ -9,7 +9,7 @@
     />
     <title>Alex Gomez Ewert — Designer &amp; Builder</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=home-photo-slot-removed" />
+    <link rel="stylesheet" href="styles.css?v=home-photo-slot-editable-2" />
   </head>
   <body>
     <div class="page-shell">
@@ -102,6 +102,30 @@
                 aria-label="Upload hero picture"
               />
               <span class="art-card-arrow">↗</span>
+            </label>
+            <label
+              class="art-card art-card-secondary"
+              for="hero-image-secondary-input"
+              title="Click to upload or replace this photo"
+            >
+              <span class="art-card-label">Photo two</span>
+              <span class="art-card-image-placeholder">
+                <strong>Add another photo</strong>
+                <small>Click to upload or replace</small>
+              </span>
+              <img
+                class="art-card-image"
+                data-hero-secondary-image
+                alt="Additional homepage photo"
+                hidden
+              />
+              <input
+                id="hero-image-secondary-input"
+                type="file"
+                accept="image/*"
+                aria-label="Upload or replace second homepage photo"
+              />
+              <span class="art-card-arrow" aria-hidden="true">Edit ↗</span>
             </label>
             <span class="art-caption">A small corner<br />of the internet</span>
           </div>
@@ -225,6 +249,6 @@
       </aside>
     </div>
 
-    <script src="script.js?v=hero-photo-one-slot"></script>
+    <script src="script.js?v=hero-photo-editable-two-slots"></script>
   </body>
 </html>

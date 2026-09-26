@@ -11,6 +11,10 @@ const heroImage = document.querySelector("[data-hero-image]");
 const heroImagePlaceholder = document.querySelector(".art-card-image-placeholder");
 const heroImageStorageKey = "about-me-hero-image";
 const heroImageDefault = "attached_assets/image1_1790099258012.jpeg";
+const secondaryArtCard = document.querySelector(".art-card-secondary");
+const secondaryHeroImageInput = document.querySelector("#hero-image-secondary-input");
+const secondaryHeroImage = document.querySelector("[data-hero-secondary-image]");
+const secondaryHeroImageStorageKey = "about-me-hero-image-secondary";
 const brandMark = document.querySelector(".brand-mark");
 const brandInitials = document.querySelector("[data-brand-initials]");
 const brandImageInput = document.querySelector("#brand-image-input");
@@ -155,6 +159,44 @@ heroImageInput?.addEventListener("change", () => {
     }
     renderHeroImage(reader.result);
     heroImageInput.value = "";
+  });
+  reader.readAsDataURL(file);
+});
+
+const renderSecondaryHeroImage = (imageData) => {
+  if (imageData) {
+    secondaryHeroImage.src = imageData;
+    secondaryHeroImage.hidden = false;
+    secondaryArtCard.classList.add("has-image");
+    return;
+  }
+
+  secondaryHeroImage.removeAttribute("src");
+  secondaryHeroImage.hidden = true;
+  secondaryArtCard.classList.remove("has-image");
+};
+
+let savedSecondaryHeroImage = null;
+try {
+  savedSecondaryHeroImage = localStorage.getItem(secondaryHeroImageStorageKey);
+} catch {
+  savedSecondaryHeroImage = null;
+}
+renderSecondaryHeroImage(savedSecondaryHeroImage);
+
+secondaryHeroImageInput?.addEventListener("change", () => {
+  const file = secondaryHeroImageInput.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      localStorage.setItem(secondaryHeroImageStorageKey, reader.result);
+    } catch {
+      // Keep the preview visible even if this browser cannot store the image.
+    }
+    renderSecondaryHeroImage(reader.result);
+    secondaryHeroImageInput.value = "";
   });
   reader.readAsDataURL(file);
 });
