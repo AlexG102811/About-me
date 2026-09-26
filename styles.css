@@ -360,6 +360,7 @@ h2 em {
   width: 38%;
   height: 38%;
   padding: 16px;
+  color: var(--dark);
   background: #f5f3eb;
   transform: rotate(-7deg);
 }
