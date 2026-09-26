@@ -209,6 +209,10 @@
   aspect-ratio: 3 / 2;
 }
 
+.future-card-photo-4x3 {
+  aspect-ratio: 4 / 3;
+}
+
 .future-card-body-copy .future-card-symbol {
   margin-bottom: 12px;
 }
