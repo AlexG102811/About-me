@@ -190,6 +190,33 @@
   line-height: 1.55;
 }
 
+.future-card-body-with-image {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.future-card-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border: 1px solid rgba(24, 33, 31, 0.34);
+  object-fit: cover;
+}
+
+.future-card-body-copy .future-card-symbol {
+  margin-bottom: 12px;
+}
+
+.future-card-body-copy h3 {
+  font-size: clamp(26px, 2.4vw, 34px);
+}
+
+.future-card-body-copy .future-card-copy {
+  margin-top: 18px;
+}
+
 .future-path-list {
   border-top: 1px solid var(--line);
 }
