@@ -278,6 +278,12 @@ class SiteHandler(SimpleHTTPRequestHandler):
                     {"error": "The contact inbox is unavailable. Configure Replit App Storage and try again."},
                     HTTPStatus.SERVICE_UNAVAILABLE,
                 )
+            except RuntimeError:
+                message_response(
+                    self,
+                    {"error": "The contact inbox contains invalid data. Contact the site owner for help."},
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                )
             return
 
         super().do_GET()
@@ -434,6 +440,12 @@ class SiteHandler(SimpleHTTPRequestHandler):
                 HTTPStatus.SERVICE_UNAVAILABLE,
             )
             return
+        except RuntimeError:
+            self.respond_to_message_submission(
+                {"error": "The message could not be saved because the contact inbox contains invalid data."},
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
+            return
         self.respond_to_message_submission({"ok": True, "message": "Thanks for reaching out."})
 
     def respond_to_message_submission(self, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
@@ -494,6 +506,13 @@ class SiteHandler(SimpleHTTPRequestHandler):
                 self,
                 {"error": "The contact inbox is unavailable. Configure Replit App Storage and try again."},
                 HTTPStatus.SERVICE_UNAVAILABLE,
+            )
+            return
+        except RuntimeError:
+            message_response(
+                self,
+                {"error": "The contact inbox contains invalid data. Contact the site owner for help."},
+                HTTPStatus.INTERNAL_SERVER_ERROR,
             )
             return
         message_response(self, {"error": "Message not found."}, HTTPStatus.NOT_FOUND)

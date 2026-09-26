@@ -1,0 +1,1 @@
+"""Contact inbox regression test package."""
