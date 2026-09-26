@@ -242,7 +242,8 @@
 }
 
 .contact-page-form input,
-.contact-page-form textarea {
+.contact-page-form textarea,
+.contact-page-form select {
   width: 100%;
   min-height: 47px;
   padding: 13px 14px;
@@ -269,7 +270,8 @@
 }
 
 .contact-page-form input:focus,
-.contact-page-form textarea:focus {
+.contact-page-form textarea:focus,
+.contact-page-form select:focus {
   border-color: var(--lime);
   background: #0d120f;
 }

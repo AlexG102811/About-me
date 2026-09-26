@@ -20,17 +20,25 @@ const brandInitials = document.querySelector("[data-brand-initials]");
 const brandImageInput = document.querySelector("#brand-image-input");
 const brandImage = document.querySelector("[data-brand-image]");
 const brandImageStorageKey = "about-me-brand-image";
+const profileUpdatedAtStorageKey = "about-me-profile-updated-at";
 
 const profileDefaults = {
   name: "Alex Gomez Ewert",
-  availability: "Available for select projects",
+  availability: "High school student · always learning",
   intro: "I’m a high school student who plays baseball, loves gaming, and enjoys spending time with friends.",
-  about: "I care about the details people feel but don’t always notice: the right words, the natural interaction, the moment a product simply makes sense.",
-  contactNote: "I’m always open to a thoughtful conversation, a new collaboration, or a great excuse to make something.",
-  email: "hello@example.com",
+  about: "I enjoy baseball, gaming, and spending time with friends. I’m still figuring out what I want to do next.",
+  contactNote: "Want to talk baseball, games, or something else? Send me a note.",
+  email: "",
+  instagram: "",
+  youtube: "",
+  tiktok: "",
+  featuredPostUrl: "",
 };
 
 const previousIntroDefault = "I’m a designer and builder who turns complex ideas into clear, considered digital experiences.";
+const previousAboutDefault = "I care about the details people feel but don’t always notice: the right words, the natural interaction, the moment a product simply makes sense.";
+const previousAvailabilityDefault = "Available for select projects";
+const previousContactNoteDefault = "I’m always open to a thoughtful conversation, a new collaboration, or a great excuse to make something.";
 
 const getSavedProfile = () => {
   try {
@@ -38,6 +46,10 @@ const getSavedProfile = () => {
     const profile = saved ? { ...profileDefaults, ...saved } : { ...profileDefaults };
     if (profile.name === "Your Name") profile.name = profileDefaults.name;
     if (profile.intro === previousIntroDefault) profile.intro = profileDefaults.intro;
+    if (profile.about === previousAboutDefault) profile.about = profileDefaults.about;
+    if (profile.availability === previousAvailabilityDefault) profile.availability = profileDefaults.availability;
+    if (profile.contactNote === previousContactNoteDefault) profile.contactNote = profileDefaults.contactNote;
+    if (profile.email === "hello@example.com") profile.email = "";
     return profile;
   } catch {
     return { ...profileDefaults };
@@ -52,6 +64,9 @@ const getInitials = (name) => {
 const renderProfile = (profile) => {
   document.querySelectorAll('[data-profile="availability"]').forEach((element) => {
     element.textContent = profile.availability;
+  });
+  document.querySelectorAll('[data-profile="name"]').forEach((element) => {
+    element.textContent = profile.name;
   });
   document.querySelectorAll('[data-profile="intro"]').forEach((element) => {
     element.textContent = profile.intro;
@@ -69,14 +84,136 @@ const renderProfile = (profile) => {
   document.querySelector(".brand-name").setAttribute("aria-label", `${profile.name} home`);
   brandInitials.textContent = getInitials(profile.name);
   document.querySelectorAll("[data-profile-email-link]").forEach((element) => {
-    element.href = `mailto:${profile.email.trim()}`;
+    const email = profile.email?.trim() || "";
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !email.endsWith("@example.com");
+    element.hidden = !isValidEmail;
+    if (isValidEmail) {
+      element.href = `mailto:${email}`;
+      element.textContent = `Email ${profile.name} · ${email} ↗`;
+    } else {
+      element.removeAttribute("href");
+      element.textContent = "";
+    }
   });
-  document.title = `${profile.name} — Designer & Builder`;
+  renderSocialLinks(profile);
+  renderFeaturedPost(profile.featuredPostUrl);
+  document.title = `${profile.name} — About me`;
 
   Object.entries(profile).forEach(([key, value]) => {
     const field = profileForm?.elements.namedItem(key);
     if (field) field.value = value;
   });
+};
+
+const trustedProfileUrl = (value, allowedHosts) => {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" || !allowedHosts.includes(url.hostname.toLowerCase())) return null;
+    return url;
+  } catch {
+    return null;
+  }
+};
+
+const renderSocialLinks = (profile) => {
+  const container = document.querySelector("[data-social-links]");
+  if (!container) return;
+  const platforms = [
+    { key: "instagram", label: "Instagram", hosts: ["instagram.com", "www.instagram.com"] },
+    { key: "youtube", label: "YouTube", hosts: ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"] },
+    { key: "tiktok", label: "TikTok", hosts: ["tiktok.com", "www.tiktok.com"] },
+  ];
+  const links = platforms.flatMap((platform) => {
+    const url = trustedProfileUrl(profile[platform.key] || "", platform.hosts);
+    if (!url) return [];
+    const link = document.createElement("a");
+    link.href = url.href;
+    link.target = "_blank";
+    link.rel = "me noopener noreferrer";
+    link.textContent = `${platform.label} ↗`;
+    return [link];
+  });
+  container.replaceChildren(...links);
+  container.hidden = links.length === 0;
+};
+
+const featuredEmbed = (value) => {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:") return null;
+  const hostname = url.hostname.toLowerCase();
+
+  if (["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"].includes(hostname)) {
+    const videoId = hostname === "youtu.be"
+      ? url.pathname.split("/").filter(Boolean)[0]
+      : url.searchParams.get("v") || url.pathname.match(/^\/(?:embed|shorts)\/([^/]+)/)?.[1];
+    return videoId && /^[\w-]{11}$/.test(videoId)
+      ? { title: "Featured YouTube video", url: url.href, embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}` }
+      : null;
+  }
+
+  if (["instagram.com", "www.instagram.com"].includes(hostname)) {
+    const match = url.pathname.match(/^\/(?:p|reel|tv)\/([\w-]+)/);
+    return match
+      ? { title: "Featured Instagram post", url: url.href, embedUrl: `https://www.instagram.com/p/${match[1]}/embed/` }
+      : null;
+  }
+
+  if (["tiktok.com", "www.tiktok.com"].includes(hostname)) {
+    const videoId = url.pathname.match(/\/video\/(\d+)/)?.[1];
+    return videoId
+      ? { title: "Featured TikTok video", url: url.href, embedUrl: `https://www.tiktok.com/embed/v2/${videoId}` }
+      : null;
+  }
+  return null;
+};
+
+const renderFeaturedPost = (value) => {
+  const container = document.querySelector("[data-featured-post]");
+  if (!container) return;
+  let url;
+  try {
+    url = new URL(value || "");
+  } catch {
+    container.replaceChildren();
+    container.hidden = true;
+    return;
+  }
+  if (url.protocol !== "https:") {
+    container.replaceChildren();
+    container.hidden = true;
+    return;
+  }
+
+  const featured = featuredEmbed(url.href);
+  const heading = document.createElement("p");
+  heading.className = "home-featured-post-title";
+  heading.textContent = "A post I wanted to share";
+  const content = document.createElement("div");
+  content.className = "home-featured-post-content";
+  if (featured) {
+    const frame = document.createElement("iframe");
+    frame.src = featured.embedUrl;
+    frame.title = featured.title;
+    frame.loading = "lazy";
+    frame.referrerPolicy = "no-referrer";
+    frame.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share";
+    frame.allowFullscreen = true;
+    frame.sandbox = "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox";
+    content.append(frame);
+  }
+  const link = document.createElement("a");
+  link.href = url.href;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = "Open post ↗";
+  content.append(link);
+  container.replaceChildren(heading, content);
+  container.hidden = false;
 };
 
 const profile = getSavedProfile();
@@ -248,12 +385,14 @@ profileForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const updatedProfile = Object.fromEntries(new FormData(profileForm).entries());
   localStorage.setItem("about-me-profile", JSON.stringify(updatedProfile));
+  localStorage.setItem(profileUpdatedAtStorageKey, new Date().toISOString());
   renderProfile(updatedProfile);
   settingsStatus.textContent = "Saved on this device.";
 });
 
 profileForm?.querySelector(".settings-reset")?.addEventListener("click", () => {
   localStorage.removeItem("about-me-profile");
+  localStorage.setItem(profileUpdatedAtStorageKey, new Date().toISOString());
   renderProfile(profileDefaults);
   settingsStatus.textContent = "Defaults restored.";
 });

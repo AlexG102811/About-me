@@ -1,1 +1,2 @@
 - [Browser video persistence](browser-video-persistence.md) — persist video Blobs in IndexedDB and preview them by object URL; data URLs break MOV playback and hit localStorage limits.
+- [App Storage bucket setup](app-storage-bucket-setup.md) — Python Client() needs an attached default bucket; fail clearly rather than storing contacts locally.

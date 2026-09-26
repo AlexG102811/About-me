@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="A thoughtful digital home for a curious creative and builder."
+      content="Meet Alex Gomez Ewert: a high school student who enjoys baseball, gaming, and time with friends."
     />
-    <title>Alex Gomez Ewert — Designer &amp; Builder</title>
+    <title>Alex Gomez Ewert — About me</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=home-photo-slot-editable-2" />
+    <link rel="stylesheet" href="styles.css?v=homepage-profile-contact-3" />
   </head>
   <body>
     <div class="page-shell">
@@ -24,7 +24,7 @@
             <span data-brand-initials>AGE</span>
             <img data-brand-image alt="" hidden />
           </button>
-          <a class="brand-name" href="#top">Alex Gomez Ewert</a>
+          <a class="brand-name" href="#top" data-profile="name">Alex Gomez Ewert</a>
           <input
             id="brand-image-input"
             class="brand-image-input"
@@ -46,6 +46,7 @@
         </button>
 
         <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+          <a class="is-current" href="#top" aria-current="page">Home</a>
           <a href="#about">About</a>
           <a href="sports.html">Sports</a>
           <a href="media.html">Media</a>
@@ -66,8 +67,8 @@
       <main id="top">
         <section class="hero section-wrap" aria-labelledby="hero-title">
           <div class="hero-copy">
-            <p class="eyebrow"><span class="eyebrow-dot"></span> <span data-profile="availability">Available for select projects</span></p>
-            <h1 id="hero-title">Hi, I’m<br /><em>Alex Gomez Ewert.</em></h1>
+            <p class="eyebrow"><span class="eyebrow-dot"></span> <span data-profile="availability">High school student · always learning</span></p>
+            <h1 id="hero-title">Hi, I’m<br /><em data-profile="name">Alex Gomez Ewert</em>.</h1>
             <p class="hero-intro" data-profile="intro">
               I’m a high school student who plays baseball, loves gaming, and
               enjoys spending time with friends.
@@ -83,10 +84,10 @@
             <div class="art-orbit art-orbit-two"></div>
             <div class="art-sun"></div>
             <label class="art-card" for="hero-image-input">
-              <span class="art-card-label">Currently</span>
+              <span class="art-card-label">A recent favorite</span>
               <span class="art-card-image-placeholder">
-                <strong>Add a picture</strong>
-                <small>Click to upload</small>
+                <strong>Baseball mural</strong>
+                <small>Click to replace</small>
               </span>
               <img
                 class="art-card-image"
@@ -127,7 +128,7 @@
               />
               <span class="art-card-arrow" aria-hidden="true">Edit ↗</span>
             </label>
-            <span class="art-caption">A small corner<br />of the internet</span>
+            <span class="art-caption">Baseball, games,<br />and everyday life</span>
           </div>
         </section>
 
@@ -149,8 +150,8 @@
                 simply makes sense.</span>
               </p>
               <p>
-                When I’m not designing, you’ll usually find me playing
-                baseball, hanging out with friends, or gaming at home.
+                When I’m not at school, I enjoy baseball, gaming, and spending
+                time with friends. I’m still figuring out what I want to do next.
               </p>
             </div>
           </div>
@@ -163,9 +164,14 @@
                 <span class="section-number">02</span>
                 <span>Get in touch</span>
               </div>
-              <h2 id="contact-title">Have a good idea?<br /><em>Let’s make it real.</em></h2>
-              <p data-profile="contactNote">I’m always open to a thoughtful conversation, a new collaboration, or a great excuse to make something.</p>
-              <a class="button button-light" href="contact.html">Open the contact page <span aria-hidden="true">↗</span></a>
+              <h2 id="contact-title">Want to say hi?<br /><em>Start here.</em></h2>
+              <p data-profile="contactNote">Want to talk baseball, games, or something else? Send me a note.</p>
+              <a class="button button-light" href="contact.html">Send me a note <span aria-hidden="true">↗</span></a>
+              <div class="home-contact-details">
+                <a class="home-email-link" data-profile-email-link hidden></a>
+                <div class="home-social-links" data-social-links hidden aria-label="Social profiles"></div>
+                <div class="home-featured-post" data-featured-post hidden></div>
+              </div>
               <p class="contact-form-intro">Or send a note directly.</p>
               <form class="contact-form" id="contact-form" action="/messages" method="post">
                 <label>
@@ -175,6 +181,17 @@
                 <label>
                   Email address
                   <input name="email" type="email" autocomplete="email" maxlength="254" required />
+                </label>
+                <label>
+                  What would you like to talk about?
+                  <select name="reason" required>
+                    <option value="">Choose a topic</option>
+                    <option>General</option>
+                    <option>Baseball</option>
+                    <option>Gaming</option>
+                    <option>School</option>
+                    <option>Other</option>
+                  </select>
                 </label>
                 <label>
                   Message
@@ -199,7 +216,7 @@
 
       <footer class="site-footer section-wrap">
         <span>© <span id="year"></span> <span data-profile="footerName">Alex Gomez Ewert</span></span>
-        <span>Designed with care, built for the web.</span>
+          <span>A small corner of the internet.</span>
         <a href="#top">Back to top ↑</a>
       </footer>
     </div>
@@ -214,7 +231,7 @@
           </div>
           <button class="settings-close" type="button" aria-label="Close profile settings">×</button>
         </div>
-        <p class="settings-description">These details update the homepage instantly and are saved in this browser.</p>
+        <p class="settings-description">These details update this browser’s homepage. Leave contact and social links blank to keep them private.</p>
         <form id="profile-form">
           <label>
             Display name
@@ -238,7 +255,23 @@
           </label>
           <label>
             Email address
-            <input name="email" type="email" autocomplete="email" required />
+            <input name="email" type="email" autocomplete="email" />
+          </label>
+          <label>
+            Instagram profile URL
+            <input name="instagram" type="url" maxlength="300" placeholder="https://www.instagram.com/…" />
+          </label>
+          <label>
+            YouTube channel URL
+            <input name="youtube" type="url" maxlength="300" placeholder="https://www.youtube.com/@…" />
+          </label>
+          <label>
+            TikTok profile URL
+            <input name="tiktok" type="url" maxlength="300" placeholder="https://www.tiktok.com/@…" />
+          </label>
+          <label>
+            Public post to feature
+            <input name="featuredPostUrl" type="url" maxlength="300" placeholder="YouTube, Instagram, or TikTok post URL" />
           </label>
           <div class="settings-form-actions">
             <button class="button button-primary" type="submit">Save changes <span aria-hidden="true">↗</span></button>
@@ -249,6 +282,6 @@
       </aside>
     </div>
 
-    <script src="script.js?v=hero-photo-editable-two-slots"></script>
+    <script src="script.js?v=homepage-profile-links-2"></script>
   </body>
 </html>

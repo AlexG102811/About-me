@@ -9,6 +9,7 @@ import json
 import os
 import re
 import secrets
+import threading
 import time
 import uuid
 from datetime import datetime, timezone
@@ -18,9 +19,13 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse
 
+from replit.object_storage import Client
+from replit.object_storage.errors import ObjectNotFoundError
+
 
 ROOT = Path(__file__).resolve().parent
 MESSAGES_PATH = ROOT / ".site-messages.json"
+MESSAGES_OBJECT_NAME = "data/contactReceived.json"
 HOST = "0.0.0.0"
 PORT = 5000
 SESSION_TTL = 60 * 60 * 8
@@ -33,6 +38,11 @@ SESSION_COOKIE = "admin_session"
 sessions: dict[str, float] = {}
 login_attempts: dict[str, list[float]] = {}
 message_attempts: dict[str, list[float]] = {}
+contact_storage_lock = threading.RLock()
+
+
+class ContactStorageUnavailable(Exception):
+    """Raised when Replit App Storage cannot serve the contact inbox."""
 
 
 def configured_secret() -> str:
@@ -111,7 +121,43 @@ def record_message_attempt(address: str, now: float) -> None:
     message_attempts.setdefault(address, []).append(now)
 
 
-def load_messages() -> list[dict]:
+def normalize_message(message: dict) -> dict:
+    if not isinstance(message, dict):
+        raise RuntimeError("The contact store contains an invalid record.")
+
+    submitted_at = message.get("submittedAt") or message.get("receivedAt")
+    if not all(
+        isinstance(message.get(field), str) and message[field].strip()
+        for field in ("id", "name", "email", "message")
+    ):
+        raise RuntimeError("The contact store contains an incomplete record.")
+    if not isinstance(submitted_at, str) or not submitted_at.strip():
+        raise RuntimeError("The contact store contains a record without a submission date.")
+
+    status = message.get("status", "new")
+    if message.get("replied") is True:
+        status = "replied"
+    if status not in {"new", "replied"}:
+        raise RuntimeError("The contact store contains an invalid reply status.")
+
+    reason = message.get("reason") or "General"
+    if reason not in {"General", "Baseball", "Gaming", "School", "Other"}:
+        reason = "Other"
+
+    return {
+        "id": message["id"],
+        "name": message["name"],
+        "email": message["email"],
+        "reason": reason,
+        "message": message["message"],
+        "submittedAt": submitted_at,
+        "read": bool(message.get("read", False)),
+        "status": status,
+        "repliedAt": message.get("repliedAt") if status == "replied" else None,
+    }
+
+
+def load_legacy_messages() -> list[dict]:
     if not MESSAGES_PATH.exists():
         return []
     try:
@@ -120,16 +166,42 @@ def load_messages() -> list[dict]:
         raise RuntimeError("The message store contains invalid JSON.") from error
     if not isinstance(messages, list):
         raise RuntimeError("The message store must contain a list.")
-    return messages
+    return [normalize_message(message) for message in messages]
+
+
+def load_messages() -> list[dict]:
+    with contact_storage_lock:
+        try:
+            serialized_messages = Client().download_as_text(MESSAGES_OBJECT_NAME)
+        except ObjectNotFoundError:
+            # Keep the original file intact so migration is reversible.
+            messages = load_legacy_messages()
+            save_messages(messages)
+            return messages
+        except Exception as error:
+            raise ContactStorageUnavailable("Contact storage is unavailable.") from error
+
+        try:
+            stored_messages = json.loads(serialized_messages)
+        except json.JSONDecodeError as error:
+            raise RuntimeError("The App Storage contact file contains invalid JSON.") from error
+        if not isinstance(stored_messages, list):
+            raise RuntimeError("The App Storage contact file must contain a list.")
+
+        messages = [normalize_message(message) for message in stored_messages]
+        if messages != stored_messages:
+            save_messages(messages)
+        return messages
 
 
 def save_messages(messages: list[dict]) -> None:
-    temporary_path = MESSAGES_PATH.with_suffix(".tmp")
-    temporary_path.write_text(
-        json.dumps(messages, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    temporary_path.replace(MESSAGES_PATH)
+    try:
+        Client().upload_from_text(
+            MESSAGES_OBJECT_NAME,
+            json.dumps([normalize_message(message) for message in messages], ensure_ascii=False, indent=2),
+        )
+    except Exception as error:
+        raise ContactStorageUnavailable("Contact storage is unavailable.") from error
 
 
 def message_response(handler: SimpleHTTPRequestHandler, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
@@ -144,6 +216,22 @@ def message_response(handler: SimpleHTTPRequestHandler, payload: dict, status: H
 
 def valid_email(value: str) -> bool:
     return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value)) and len(value) <= 254
+
+
+def request_json(handler: SimpleHTTPRequestHandler, maximum_length: int = 4096) -> dict:
+    try:
+        length = int(handler.headers.get("Content-Length", "0"))
+    except ValueError as error:
+        raise ValueError("The request body length is invalid.") from error
+    if length < 0 or length > maximum_length:
+        raise ValueError("The request body is too large.")
+    try:
+        payload = json.loads(handler.rfile.read(length).decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("The request body must be valid JSON.") from error
+    if not isinstance(payload, dict):
+        raise ValueError("The request body must be a JSON object.")
+    return payload
 
 
 class SiteHandler(SimpleHTTPRequestHandler):
@@ -182,7 +270,14 @@ class SiteHandler(SimpleHTTPRequestHandler):
             if not has_valid_session(self):
                 message_response(self, {"error": "Authentication required."}, HTTPStatus.UNAUTHORIZED)
                 return
-            message_response(self, {"messages": load_messages()})
+            try:
+                message_response(self, {"messages": load_messages()})
+            except ContactStorageUnavailable:
+                message_response(
+                    self,
+                    {"error": "The contact inbox is unavailable. Configure Replit App Storage and try again."},
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                )
             return
 
         super().do_GET()
@@ -194,8 +289,8 @@ class SiteHandler(SimpleHTTPRequestHandler):
             self.receive_message()
             return
 
-        if path.startswith("/api/messages/") and path.endswith("/read"):
-            self.mark_message_read(path)
+        if path.startswith("/api/messages/") and path.endswith(("/read", "/reply")):
+            self.update_message(path)
             return
 
         if path != "/login":
@@ -303,28 +398,42 @@ class SiteHandler(SimpleHTTPRequestHandler):
             self.respond_to_message_submission({"ok": True, "message": "Thanks for reaching out."})
             return
 
+        reason = form.get("reason", [""])[0].strip()
         if not 1 <= len(name) <= 80:
             self.respond_to_message_submission({"error": "Please enter your name."}, HTTPStatus.BAD_REQUEST)
             return
         if not valid_email(email):
             self.respond_to_message_submission({"error": "Please enter a valid email address."}, HTTPStatus.BAD_REQUEST)
             return
+        if reason not in {"General", "Baseball", "Gaming", "School", "Other"}:
+            self.respond_to_message_submission({"error": "Please choose a message topic."}, HTTPStatus.BAD_REQUEST)
+            return
         if not 1 <= len(message) <= 3000:
             self.respond_to_message_submission({"error": "Please write a message before sending."}, HTTPStatus.BAD_REQUEST)
             return
 
-        messages = load_messages()
-        messages.append(
-            {
-                "id": uuid.uuid4().hex,
-                "name": name,
-                "email": email,
-                "message": message,
-                "submittedAt": datetime.now(timezone.utc).isoformat(),
-                "read": False,
-            }
-        )
-        save_messages(messages)
+        new_message = {
+            "id": uuid.uuid4().hex,
+            "name": name,
+            "email": email,
+            "reason": reason,
+            "message": message,
+            "submittedAt": datetime.now(timezone.utc).isoformat(),
+            "read": False,
+            "status": "new",
+            "repliedAt": None,
+        }
+        try:
+            with contact_storage_lock:
+                messages = load_messages()
+                messages.append(new_message)
+                save_messages(messages)
+        except ContactStorageUnavailable:
+            self.respond_to_message_submission(
+                {"error": "The message could not be saved. Please try again later."},
+                HTTPStatus.SERVICE_UNAVAILABLE,
+            )
+            return
         self.respond_to_message_submission({"ok": True, "message": "Thanks for reaching out."})
 
     def respond_to_message_submission(self, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
@@ -336,20 +445,57 @@ class SiteHandler(SimpleHTTPRequestHandler):
             return
         self.redirect("/index.html?message=error#contact")
 
-    def mark_message_read(self, path: str) -> None:
+    def update_message(self, path: str) -> None:
         if not has_valid_session(self):
             message_response(self, {"error": "Authentication required."}, HTTPStatus.UNAUTHORIZED)
             return
 
         parts = path.split("/")
         message_id = parts[3] if len(parts) == 5 else ""
-        messages = load_messages()
-        for message in messages:
-            if message.get("id") == message_id:
-                message["read"] = True
-                save_messages(messages)
-                message_response(self, {"ok": True, "message": message})
+        action = parts[4] if len(parts) == 5 else ""
+        try:
+            payload = request_json(self)
+        except ValueError as error:
+            message_response(self, {"error": str(error)}, HTTPStatus.BAD_REQUEST)
+            return
+
+        if action == "read":
+            if not isinstance(payload.get("read"), bool):
+                message_response(self, {"error": "Choose whether the message is read."}, HTTPStatus.BAD_REQUEST)
                 return
+        elif action == "reply":
+            if payload.get("status") not in {"new", "replied"}:
+                message_response(self, {"error": "Choose a valid reply status."}, HTTPStatus.BAD_REQUEST)
+                return
+        else:
+            message_response(self, {"error": "Unknown message action."}, HTTPStatus.NOT_FOUND)
+            return
+
+        try:
+            with contact_storage_lock:
+                messages = load_messages()
+                for message in messages:
+                    if message.get("id") != message_id:
+                        continue
+                    if action == "read":
+                        message["read"] = payload["read"]
+                    else:
+                        message["status"] = payload["status"]
+                        message["repliedAt"] = (
+                            datetime.now(timezone.utc).isoformat()
+                            if payload["status"] == "replied"
+                            else None
+                        )
+                    save_messages(messages)
+                    message_response(self, {"ok": True, "message": message})
+                    return
+        except ContactStorageUnavailable:
+            message_response(
+                self,
+                {"error": "The contact inbox is unavailable. Configure Replit App Storage and try again."},
+                HTTPStatus.SERVICE_UNAVAILABLE,
+            )
+            return
         message_response(self, {"error": "Message not found."}, HTTPStatus.NOT_FOUND)
 
 

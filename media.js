@@ -7,7 +7,9 @@ const mediaPhotoSlots = document.querySelectorAll("[data-photo-slot]");
 const mediaVideoSlots = document.querySelectorAll("[data-video-slot]");
 const mediaVideoStatus = document.querySelector("[data-video-status]");
 const mediaPhotoStorageKey = "about-me-media-photos";
+const mediaPhotoCaptionStorageKey = "about-me-media-photo-captions";
 const mediaVideoStorageKey = "about-me-media-videos";
+const mediaPhotoDefaults = ["attached_assets/image1_1790099258012.jpeg"];
 const mediaVideoDefaults = [
   "attached_assets/Video_(1)_1790099620861.mov",
   "attached_assets/Video_1790099821395.mov",
@@ -25,8 +27,74 @@ const mediaVideoMimeTypes = {
 };
 const mediaVideoDatabaseName = "personal-media-videos";
 const mediaVideoStoreName = "videos";
+const mediaPhotoDatabaseName = "personal-media-photos";
+const mediaPhotoStoreName = "photos";
 const mediaVideoObjectUrls = new Map();
+const mediaPhotoObjectUrls = new Map();
 let mediaVideoDatabasePromise;
+let mediaPhotoDatabasePromise;
+
+const openMediaPhotoDatabase = () => {
+  if (!window.indexedDB) return Promise.reject(new Error("Browser photo storage is unavailable."));
+  if (!mediaPhotoDatabasePromise) {
+    mediaPhotoDatabasePromise = new Promise((resolve, reject) => {
+      const request = window.indexedDB.open(mediaPhotoDatabaseName, 1);
+      request.addEventListener("upgradeneeded", () => {
+        if (!request.result.objectStoreNames.contains(mediaPhotoStoreName)) {
+          request.result.createObjectStore(mediaPhotoStoreName);
+        }
+      });
+      request.addEventListener("success", () => resolve(request.result), { once: true });
+      request.addEventListener("error", () => reject(request.error || new Error("Couldn't open browser photo storage.")), { once: true });
+      request.addEventListener("blocked", () => reject(new Error("Browser photo storage is blocked.")), { once: true });
+    });
+  }
+  return mediaPhotoDatabasePromise;
+};
+
+const getStoredMediaPhoto = async (slotIndex) => {
+  const database = await openMediaPhotoDatabase();
+  return new Promise((resolve, reject) => {
+    const request = database.transaction(mediaPhotoStoreName, "readonly")
+      .objectStore(mediaPhotoStoreName)
+      .get(slotIndex);
+    request.addEventListener("success", () => resolve(request.result || null), { once: true });
+    request.addEventListener("error", () => reject(request.error || new Error("Couldn't read the saved photo.")), { once: true });
+  });
+};
+
+const saveStoredMediaPhoto = async (slotIndex, file) => {
+  const database = await openMediaPhotoDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(mediaPhotoStoreName, "readwrite");
+    transaction.objectStore(mediaPhotoStoreName).put(file, slotIndex);
+    transaction.addEventListener("complete", resolve, { once: true });
+    transaction.addEventListener("error", () => reject(transaction.error || new Error("Couldn't save the photo.")), { once: true });
+    transaction.addEventListener("abort", () => reject(transaction.error || new Error("Photo storage was interrupted.")), { once: true });
+  });
+};
+
+const createMediaPhotoObjectUrl = (slotIndex, blob) => {
+  const previousUrl = mediaPhotoObjectUrls.get(slotIndex);
+  if (previousUrl) URL.revokeObjectURL(previousUrl);
+  const objectUrl = URL.createObjectURL(blob);
+  mediaPhotoObjectUrls.set(slotIndex, objectUrl);
+  return objectUrl;
+};
+
+const mediaPhotoDataUrlToBlob = (dataUrl) => {
+  const [metadata, encodedData] = dataUrl.split(",", 2);
+  if (!metadata || !encodedData || !metadata.includes(";base64")) {
+    throw new Error("The saved photo data is invalid.");
+  }
+  const mimeType = metadata.match(/^data:([^;]+)/)?.[1] || "application/octet-stream";
+  const binary = window.atob(encodedData);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return new Blob([bytes], { type: mimeType });
+};
 
 const openMediaVideoDatabase = () => {
   if (!window.indexedDB) return Promise.reject(new Error("Browser video storage is unavailable."));
@@ -125,7 +193,7 @@ mediaFilters.forEach((filter) => {
     });
 
     mediaCards.forEach((card) => {
-      const shouldShow = selectedFilter === "all" || card.dataset.mediaType === selectedFilter;
+      const shouldShow = !card.hidden && (selectedFilter === "all" || card.dataset.mediaType === selectedFilter);
       card.classList.toggle("is-hidden", !shouldShow);
       if (shouldShow) visibleCards += 1;
     });
@@ -134,23 +202,60 @@ mediaFilters.forEach((filter) => {
   });
 });
 
-const renderSavedPhotos = () => {
+const renderSavedPhotos = async () => {
   let savedPhotos = [];
+  let savedCaptions = [];
   try {
     savedPhotos = JSON.parse(localStorage.getItem(mediaPhotoStorageKey)) || [];
   } catch {
     savedPhotos = [];
   }
+  try {
+    savedCaptions = JSON.parse(localStorage.getItem(mediaPhotoCaptionStorageKey)) || [];
+  } catch {
+    savedCaptions = [];
+  }
 
-  mediaPhotoSlots.forEach((slot, index) => {
+  await Promise.all([...mediaPhotoSlots].map(async (slot, index) => {
     const image = slot.querySelector("[data-photo-image]");
-    const photo = savedPhotos[index];
-    if (photo) {
-      image.src = photo;
+    const caption = slot.querySelector("[data-photo-caption]");
+    const openButton = slot.querySelector("[data-photo-open]");
+    if (caption) {
+      caption.value = savedCaptions[index] || (index === 0 ? "Baseball mural" : "");
+      slot.dataset.caption = caption.value;
+    }
+
+    let photoSource = null;
+    try {
+      const storedPhoto = await getStoredMediaPhoto(index);
+      if (storedPhoto) photoSource = createMediaPhotoObjectUrl(index, storedPhoto);
+    } catch {
+      if (mediaVideoStatus) mediaVideoStatus.textContent = "Saved photo storage could not be read. Check this browser’s storage settings.";
+    }
+
+    const legacyPhoto = savedPhotos[index];
+    if (!photoSource && legacyPhoto) {
+      if (legacyPhoto.startsWith("data:")) {
+        try {
+          photoSource = createMediaPhotoObjectUrl(index, mediaPhotoDataUrlToBlob(legacyPhoto));
+          await saveStoredMediaPhoto(index, mediaPhotoDataUrlToBlob(legacyPhoto));
+        } catch {
+          photoSource = legacyPhoto;
+        }
+      } else {
+        photoSource = legacyPhoto;
+      }
+    }
+    if (!photoSource) photoSource = mediaPhotoDefaults[index] || null;
+
+    if (photoSource) {
+      image.src = photoSource;
       image.hidden = false;
       slot.classList.add("has-photo");
+      if (openButton) openButton.disabled = false;
     }
-  });
+    if (caption) image.alt = caption.value.trim() || `Photo ${String(index + 1).padStart(2, "0")}`;
+  }));
 };
 
 const renderSavedVideos = async () => {
@@ -191,6 +296,8 @@ const renderSavedVideos = async () => {
       video.hidden = false;
       video.load();
       slot.classList.add("has-video");
+      const expandButton = slot.querySelector("[data-video-expand]");
+      if (expandButton) expandButton.disabled = false;
     }
     if (storageError && index === 1 && mediaVideoStatus) {
       mediaVideoStatus.textContent = "Could not read saved video storage. Showing the last available clip.";
@@ -198,41 +305,114 @@ const renderSavedVideos = async () => {
   }));
 };
 
+const renderPhotoCaption = (slot, index, value) => {
+  const caption = value.trim().slice(0, 120);
+  const image = slot.querySelector("[data-photo-image]");
+  const input = slot.querySelector("[data-photo-caption]");
+  slot.dataset.caption = caption;
+  if (input && input.value !== caption) input.value = caption;
+  if (image) image.alt = caption || `Photo ${String(index + 1).padStart(2, "0")}`;
+};
+
 mediaPhotoSlots.forEach((slot) => {
   const input = slot.querySelector("[data-photo-input]");
-  input?.addEventListener("change", () => {
+  const captionInput = slot.querySelector("[data-photo-caption]");
+  const openButton = slot.querySelector("[data-photo-open]");
+  const slotIndex = Number(slot.dataset.photoSlot);
+
+  captionInput?.addEventListener("input", () => {
+    renderPhotoCaption(slot, slotIndex, captionInput.value);
+    let savedCaptions = [];
+    try {
+      savedCaptions = JSON.parse(localStorage.getItem(mediaPhotoCaptionStorageKey)) || [];
+      savedCaptions[slotIndex] = captionInput.value.trim().slice(0, 120);
+      localStorage.setItem(mediaPhotoCaptionStorageKey, JSON.stringify(savedCaptions));
+    } catch {
+      if (mediaVideoStatus) mediaVideoStatus.textContent = "The caption is visible, but this browser could not save it.";
+    }
+  });
+
+  openButton?.addEventListener("click", () => {
+    const image = slot.querySelector("[data-photo-image]");
+    if (!image?.src || image.hidden) return;
+    openMediaLightbox("image", image.src, slot.dataset.caption || image.alt);
+  });
+
+  input?.addEventListener("change", async () => {
     const file = input.files?.[0];
     if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type) || file.size > 15 * 1024 * 1024) {
+      if (mediaVideoStatus) mediaVideoStatus.textContent = "Choose a PNG, JPEG, or WebP photo under 15 MB.";
+      input.value = "";
+      return;
+    }
 
-    const reader = new FileReader();
-    reader.addEventListener("load", () => {
+    try {
+      await saveStoredMediaPhoto(slotIndex, file);
       const image = slot.querySelector("[data-photo-image]");
-      const slotIndex = Number(slot.dataset.photoSlot);
-      let savedPhotos = [];
-      try {
-        savedPhotos = JSON.parse(localStorage.getItem(mediaPhotoStorageKey)) || [];
-      } catch {
-        savedPhotos = [];
-      }
-
-      savedPhotos[slotIndex] = reader.result;
-      try {
-        localStorage.setItem(mediaPhotoStorageKey, JSON.stringify(savedPhotos));
-      } catch {
-        // Keep the preview visible even if this browser cannot store the image.
-      }
-      image.src = reader.result;
+      image.src = createMediaPhotoObjectUrl(slotIndex, file);
       image.hidden = false;
       slot.classList.add("has-photo");
-    });
-    reader.readAsDataURL(file);
+      if (openButton) openButton.disabled = false;
+      if (mediaVideoStatus) mediaVideoStatus.textContent = "Photo saved in this browser.";
+
+      try {
+        const savedPhotos = JSON.parse(localStorage.getItem(mediaPhotoStorageKey)) || [];
+        savedPhotos[slotIndex] = null;
+        localStorage.setItem(mediaPhotoStorageKey, JSON.stringify(savedPhotos));
+      } catch {
+        // The new photo is already stored in IndexedDB.
+      }
+    } catch {
+      if (mediaVideoStatus) mediaVideoStatus.textContent = "The photo preview was not saved. Check browser storage and try again.";
+    } finally {
+      input.value = "";
+    }
   });
+});
+
+const lightbox = document.querySelector("[data-media-lightbox]");
+const lightboxContent = document.querySelector("[data-lightbox-content]");
+const lightboxCaption = document.querySelector("[data-lightbox-caption]");
+
+const openMediaLightbox = (type, source, caption) => {
+  if (!lightbox || !lightboxContent) return;
+  lightboxContent.replaceChildren();
+  let media;
+  if (type === "video") {
+    media = document.createElement("video");
+    media.controls = true;
+    media.autoplay = false;
+    media.playsInline = true;
+  } else {
+    media = document.createElement("img");
+    media.alt = caption || "Expanded photo";
+  }
+  media.src = source;
+  lightboxContent.append(media);
+  if (lightboxCaption) lightboxCaption.textContent = caption || "";
+  if (!lightbox.open) lightbox.showModal();
+};
+
+document.querySelector("[data-lightbox-close]")?.addEventListener("click", () => lightbox?.close());
+lightbox?.addEventListener("click", (event) => {
+  if (event.target === lightbox) lightbox.close();
+});
+lightbox?.addEventListener("close", () => {
+  const video = lightboxContent?.querySelector("video");
+  if (video) {
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+  }
+  lightboxContent?.replaceChildren();
 });
 
 mediaVideoSlots.forEach((slot) => {
   const input = slot.querySelector("[data-video-input]");
   const video = slot.querySelector("[data-video-preview]");
   const replaceButton = slot.querySelector("[data-video-replace]");
+  const expandButton = slot.querySelector("[data-video-expand]");
   const slotIndex = Number(slot.dataset.videoSlot);
 
   video?.addEventListener("click", (event) => {
@@ -243,6 +423,13 @@ mediaVideoSlots.forEach((slot) => {
     event.preventDefault();
     event.stopPropagation();
     input?.click();
+  });
+
+  expandButton?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const source = video?.currentSrc || video?.src;
+    if (source) openMediaLightbox("video", source, slot.querySelector("[data-video-caption]")?.textContent || "Video");
   });
 
   input?.addEventListener("change", async () => {
@@ -365,3 +552,62 @@ if (savedProfile?.name) {
 }
 
 document.querySelector("#media-year").textContent = new Date().getFullYear();
+
+const mediaFeaturedPost = document.querySelector("[data-media-featured-post]");
+const mediaFeaturedContent = document.querySelector("[data-media-featured-post-content]");
+const featuredPostUrl = savedProfile?.featuredPostUrl?.trim();
+if (mediaFeaturedPost && mediaFeaturedContent && featuredPostUrl) {
+  let postUrl;
+  try {
+    postUrl = new URL(featuredPostUrl);
+  } catch {
+    postUrl = null;
+  }
+  if (postUrl?.protocol === "https:") {
+    let embedUrl = null;
+    let title = "Featured public post";
+    const host = postUrl.hostname.toLowerCase();
+    if (["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"].includes(host)) {
+      const videoId = host === "youtu.be"
+        ? postUrl.pathname.split("/").filter(Boolean)[0]
+        : postUrl.searchParams.get("v") || postUrl.pathname.match(/^\/(?:embed|shorts)\/([^/]+)/)?.[1];
+      if (videoId && /^[\w-]{11}$/.test(videoId)) {
+        embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}`;
+        title = "Featured YouTube video";
+      }
+    } else if (["instagram.com", "www.instagram.com"].includes(host)) {
+      const postId = postUrl.pathname.match(/^\/(?:p|reel|tv)\/([\w-]+)/)?.[1];
+      if (postId) {
+        embedUrl = `https://www.instagram.com/p/${postId}/embed/`;
+        title = "Featured Instagram post";
+      }
+    } else if (["tiktok.com", "www.tiktok.com"].includes(host)) {
+      const videoId = postUrl.pathname.match(/\/video\/(\d+)/)?.[1];
+      if (videoId) {
+        embedUrl = `https://www.tiktok.com/embed/v2/${videoId}`;
+        title = "Featured TikTok video";
+      }
+    }
+
+    if (embedUrl) {
+      const frame = document.createElement("iframe");
+      frame.src = embedUrl;
+      frame.title = title;
+      frame.loading = "lazy";
+      frame.referrerPolicy = "no-referrer";
+      frame.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share";
+      frame.allowFullscreen = true;
+      frame.sandbox = "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox";
+      mediaFeaturedContent.append(frame);
+    }
+    const link = document.createElement("a");
+    link.href = postUrl.href;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = embedUrl ? "Open post ↗" : "View this post ↗";
+    mediaFeaturedContent.append(link);
+    mediaFeaturedPost.hidden = false;
+    const featuredCard = document.querySelector("[data-featured-post-card]");
+    if (featuredCard) featuredCard.hidden = false;
+  }
+}
