@@ -3,16 +3,126 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="description"
+    content="A look ahead at baseball, working outdoors, and trying to grow a business."
+  />
+  <meta name="theme-color" content="#090b0a" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <title>Future</title>
-    <style>
-      html,
-      body {
-        min-height: 100%;
-        margin: 0;
-        background: #000;
-      }
-    </style>
+  <link rel="stylesheet" href="sports.css" />
+  <link rel="stylesheet" href="future.css" />
+  <title>Future — Alex Gomez Ewert</title>
   </head>
-  <body></body>
+<body class="future-page">
+  <div class="sports-shell">
+    <header class="sports-header">
+      <a class="sports-brand" href="index.html" aria-label="Alex Gomez Ewert home">
+        <span class="sports-brand-mark">
+          <span data-brand-initials>AGE</span>
+          <img data-brand-image alt="" hidden />
+        </span>
+        <span class="sports-brand-name">Alex Gomez Ewert</span>
+      </a>
+
+      <button
+        class="sports-menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="future-nav"
+        aria-label="Open navigation"
+      >
+        <span></span>
+        <span></span>
+      </button>
+
+      <nav class="sports-nav" id="future-nav" aria-label="Future page navigation">
+        <a href="index.html">Home</a>
+        <a href="sports.html">Sports</a>
+        <a href="media.html">Media</a>
+        <a class="is-current" href="future.html" aria-current="page">Future</a>
+        <a href="admin.html">Admin</a>
+      </nav>
+
+      <a class="sports-header-link" href="contact.html">Say hello <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <main>
+      <section class="sports-hero future-hero" aria-labelledby="future-title">
+        <div class="sports-hero-copy">
+          <p class="sports-eyebrow"><span></span> Looking ahead</p>
+          <h1 id="future-title">What comes<br /><em>next.</em></h1>
+          <p class="sports-lede">
+            In the future, I see myself on the baseball field or working outside,
+            trying to grow a business.
+          </p>
+          <a class="sports-button" href="#future-horizon">See the picture <span aria-hidden="true">↓</span></a>
+        </div>
+
+        <div
+          class="sports-hero-art future-hero-art"
+          role="img"
+          aria-label="Abstract illustration of a rising sun over the horizon"
+        >
+          <div class="future-sun"></div>
+          <div class="future-horizon-line"></div>
+          <div class="future-hero-card" aria-hidden="true">FIELD<br />&amp;<br />FUTURE</div>
+          <div class="future-hero-note" aria-hidden="true">One step<br />at a time.</div>
+          <span class="sports-art-number">01 / 03</span>
+        </div>
+      </section>
+
+      <section class="future-horizon" id="future-horizon" aria-labelledby="future-horizon-title">
+        <div class="future-section-heading">
+          <div>
+            <p class="sports-section-label"><span>01</span> The direction</p>
+            <h2 id="future-horizon-title">A few parts<br /><em>of the picture.</em></h2>
+          </div>
+          <p>Baseball, working outside, and the chance to grow a business.</p>
+        </div>
+
+        <div class="future-card-grid">
+          <article class="future-card future-card-now">
+            <div class="future-card-top"><span>Baseball</span><span>01 / The field</span></div>
+            <div>
+              <p class="future-card-symbol" aria-hidden="true">↗</p>
+              <h3>Stay in<br /><em>the game.</em></h3>
+              <p class="future-card-copy">A future with baseball still on the field—and part of the picture.</p>
+            </div>
+          </article>
+
+          <article class="future-card future-card-next">
+            <div class="future-card-top"><span>Outdoors</span><span>02 / Hands-on</span></div>
+            <div>
+              <p class="future-card-symbol" aria-hidden="true">↗</p>
+              <h3>Work<br /><em>outside.</em></h3>
+              <p class="future-card-copy">Make room for outdoor, hands-on work.</p>
+            </div>
+          </article>
+
+          <article class="future-card future-card-later">
+            <div class="future-card-top"><span>Business</span><span>03 / Growth</span></div>
+            <div>
+              <p class="future-card-symbol" aria-hidden="true">↗</p>
+              <h3>Build<br /><em>and grow.</em></h3>
+              <p class="future-card-copy">Try to grow a business, one step at a time.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="sports-cta future-cta" aria-labelledby="future-cta-title">
+        <p class="sports-section-label sports-section-label-light"><span>02</span> Keep looking ahead</p>
+        <h2 id="future-cta-title">The next step<br /><em>starts here.</em></h2>
+        <a class="sports-button sports-button-light" href="contact.html">Say hello <span aria-hidden="true">↗</span></a>
+      </section>
+    </main>
+
+    <footer class="sports-footer">
+      <span>© <span id="future-year"></span> Alex Gomez Ewert</span>
+      <a href="index.html">Back home ↑</a>
+    </footer>
+  </div>
+
+  <script src="future.js"></script>
+</body>
 </html>
