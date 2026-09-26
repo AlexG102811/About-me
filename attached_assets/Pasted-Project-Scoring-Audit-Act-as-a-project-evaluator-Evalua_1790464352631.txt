@@ -1,0 +1,352 @@
+Project Scoring Audit
+Act as a project evaluator.
+
+Evaluate my current Replit project using the scoring rubric below.
+Evaluation Rules
+Do NOT modify or fix my project during this evaluation.
+Inspect the actual project files.
+Run the application and test functionality whenever possible.
+For functional requirements, verify that they actually work rather than assuming the code should work.
+Use browser testing, terminal commands, HTTP requests, file inspection, or other available testing methods when helpful.
+Do not assume a requirement is satisfied.
+If something cannot reasonably be verified, mark that item NOT VERIFIED and award 0 points for that item until it can be verified.
+For Criteria 1-8, award points according to the individual 1-point requirements listed.
+For Criteria 9-10, use the holistic 0-5 scoring descriptions.
+Do not automatically fix anything during the evaluation.
+Do not round the final score up.
+
+The project is worth 50 points total.
+
+
+SCORING RUBRIC
+1. Site Structure & Navigation - 5 points
+Award 1 point each:
+
+All 6 required pages exist and load.
+A universal header, footer, and consistent theme appear on all pages.
+Navigation works from every page.
+The current page has a clearly visible active navigation state.
+There are no broken internal links, external links, or unexpected 404 errors.
+
+
+2. Home Page Content - 5 points
+Award 1 point each:
+
+Student's full name appears as the <h1>.
+A clear student photo appears prominently above the fold.
+Biography contains exactly 2 or 3 <p> elements.
+At least 2 images and/or videos are included.
+Contact area includes social media and email links.
+
+
+3. Contact Form - 5 points
+Award 1 point each:
+
+All required fields and options are present:
+First Name
+Last Name
+Email
+Reason for Contact
+Comment
+Question
+Partnership
+Opportunity
+Other
+Message
+Submit button
+Required fields are validated.
+Successful submissions are sent to the server.
+Success and error feedback work correctly.
+The form clears after a successful submission.
+
+
+4. Server & Persistent Contact Data - 5 points
+Award 1 point each:
+
+Contact submissions use POST /api/contact.
+Persistent data uses Replit App Storage at data/contactReceived.json.
+Stored records contain the required information, including:
+Unique ID
+First name
+Last name
+Email
+Reason
+Message
+Submission timestamp
+replied
+repliedAt
+Multiple records append without replacing previous records.
+Data persists after refresh/server restart and does not rely on browser localStorage, an in-memory array, or the local server filesystem as the primary data store.
+
+Test actual persistence when possible.
+
+
+5. Media Page - 5 points
+Award 1 point each:
+
+At least 9 media cards are present.
+Media relates directly to the student or something closely connected to them.
+Gallery includes at least:
+1 image
+1 video
+1 social media post or embed
+Every card contains:
+Title
+Media
+Caption
+Cards include both:
+A visible hover effect
+Click behavior that expands the media or opens the original social media content
+
+
+6. Future & Choice Pages - 5 points
+Award 1 point each:
+
+Future page tells a clear story about where the student hopes to be and what they hope to be doing over the next 5 years.
+Future page includes at least one specific, realistically achievable long-term goal.
+Choice Page #1 has a descriptive filename and communicates a meaningful topic about the student.
+Choice Page #2 has a different descriptive filename and communicates a different meaningful topic about the student.
+All three pages use a meaningful combination of:
+Text
+Headings
+Media
+Appropriate HTML elements
+
+
+7. Admin Security & Message Management - 5 points
+Award 1 point each:
+
+Admin password is stored in Replit Secrets and verified on the server.
+Unauthenticated users cannot access contact message data or Admin actions.
+Dashboard displays all required message information, with newest messages first:
+Name
+Email
+Reason
+Message
+Date received
+Reply status
+All, New, and Replied filters work correctly.
+Mark as Replied updates both replied and repliedAt in persistent storage.
+
+Do not award the security points simply because the interface hides information. Verify server-side protection whenever possible.
+
+
+8. Admin Dashboard & Published Application - 5 points
+Award 1 point each:
+
+Total Messages, New Messages, Replied Messages, and Reply Rate calculate correctly.
+A chart accurately displays Messages by Reason for Contact.
+Dashboard calculations and chart use current stored data and update when the underlying data changes.
+The published Replit application successfully runs the required server-side functionality.
+The completed published application functions without broken media/resources or deployment-specific errors.
+
+Evaluate the published version when it is accessible.
+
+
+9. Visual Design & Usability - 5 points
+This criterion is subjective. Evaluate the entire website as a user.
+5 points
+Polished, visually cohesive, and highly usable.
+4 points
+Strong design with only minor visual or usability issues.
+3 points
+Functional and reasonably attractive.
+2 points
+Design is inconsistent or the site is noticeably difficult to use.
+1 point
+Minimal design effort or significant usability problems.
+0 points
+Essentially unstyled or unusable.
+
+Consider factors such as:
+
+Visual consistency
+Layout
+Spacing
+Typography
+Readability
+Navigation clarity
+Media presentation
+Responsiveness
+Overall ease of use
+
+Do not score based on personal style preference alone.
+
+
+10. Personal Storytelling & Content Quality - 5 points
+This criterion is subjective. Evaluate the website as a whole.
+5 points
+The site communicates a strong, specific picture of the student and the content feels intentional.
+4 points
+The site communicates a clear personal identity with good content.
+3 points
+The site provides adequate information but feels somewhat generic.
+2 points
+Personal content is limited or underdeveloped.
+1 point
+Very little meaningful personal content is present.
+0 points
+Content is missing or primarily placeholder content.
+
+Consider whether the website helps a visitor understand:
+
+Who the student is
+Their interests
+Their experiences
+Their goals
+What matters to them
+
+Do not judge the student's interests, goals, writing style, or personality. Evaluate how effectively the website communicates them.
+
+
+REQUIRED FINAL REPORT
+Return the evaluation in the exact order below.
+
+
+SCORE REPORT
+Overall Score
+XX / 50
+
+Percentage: XX%
+
+Calculate percentage as:
+
+Points Earned ÷ 50 × 100
+Category Scores
+Criterion
+Points Possible
+Points Earned
+1. Site Structure & Navigation
+5
+
+
+2. Home Page Content
+5
+
+
+3. Contact Form
+5
+
+
+4. Server & Persistent Contact Data
+5
+
+
+5. Media Page
+5
+
+
+6. Future & Choice Pages
+5
+
+
+7. Admin Security & Message Management
+5
+
+
+8. Admin Dashboard & Published Application
+5
+
+
+9. Visual Design & Usability
+5
+
+
+10. Personal Storytelling & Content Quality
+5
+
+
+TOTAL
+50
+XX
+
+
+
+AREAS TO IMPROVE
+Focus only on deficiencies.
+
+Do NOT list individual requirements that earned full credit.
+
+Include:
+
+Objective 1-point requirements that failed or could not be verified.
+Criteria 9 or 10 only when they scored below 5.
+
+Group related deficiencies together when that makes the feedback easier to understand.
+
+For each area, use this format:
+[Criterion and Area]
+Points affected: X
+
+What I found:
+Briefly explain what appears missing, incomplete, incorrect, not working, or underdeveloped.
+
+Why it matters:
+Briefly connect the issue to the project requirement or to the quality of the website.
+
+What to investigate:
+Provide formative feedback that helps the student think through how to improve the project.
+
+The feedback should:
+
+Point toward the relevant concept, feature, file, content, or behavior.
+Suggest what the student could inspect, test, compare, reconsider, or improve.
+Help the student understand the likely issue.
+Encourage diagnosis and problem solving.
+Use student-friendly language.
+Avoid providing exact replacement code.
+Avoid giving a complete solution.
+Avoid detailed step-by-step repair instructions.
+Avoid automatically fixing the project.
+Avoid presenting one specific technical approach as the only correct solution when multiple approaches could satisfy the requirement.
+
+The goal is to help the student understand the deficiency and make their own correction.
+
+Example:
+4. Server & Persistent Contact Data
+Points affected: 1
+
+What I found:
+Contact submissions are being stored, but the application appears to use the local project filesystem rather than Replit App Storage.
+
+Why it matters:
+The project requires contact records to remain available even when the application restarts or is redeployed.
+
+What to investigate:
+Review how your server currently reads and writes data/contactReceived.json. Consider the difference between a file that exists only inside the running application and an object stored through Replit's persistent storage system. Think about what would happen to your submitted messages after a new deployment.
+
+
+PRIORITY IMPROVEMENTS
+Identify up to 5 areas that would have the greatest impact on:
+
+Recovering lost rubric points
+Important project functionality
+Features that other parts of the application depend on
+
+Order them from highest to lowest priority.
+
+For each include:
+
+Area
+Points affected
+What to focus on: One brief sentence describing what the student should investigate or reconsider.
+
+Do not provide code or complete solutions.
+
+
+NOT VERIFIED
+Only include requirements that genuinely could not be tested or confirmed.
+
+For each:
+
+Identify the requirement.
+Explain why it could not be verified.
+Explain what evidence or test would allow it to be verified.
+Do not assume it passes.
+Do not assume it fails.
+
+Do not repeat the full formative feedback from Areas to Improve.
+
+If every requirement was successfully evaluated, state:
+
+All rubric requirements were successfully evaluated.
