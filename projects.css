@@ -129,6 +129,11 @@
   line-height: 1.65;
 }
 
+.projects-project-list {
+  display: grid;
+  gap: 18px;
+}
+
 .projects-showcase {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
@@ -153,6 +158,25 @@
   border: 1px solid rgba(32, 51, 48, 0.24);
   border-radius: 50%;
   content: "";
+}
+
+.projects-showcase-car .projects-showcase-art {
+  min-height: 0;
+  aspect-ratio: 4 / 3;
+  background: var(--dark);
+}
+
+.projects-showcase-car .projects-showcase-art::before {
+  display: none;
+}
+
+.projects-showcase-photo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .projects-site-preview {
