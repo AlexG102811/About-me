@@ -1,25 +1,25 @@
-const futureMenuToggle = document.querySelector(".sports-menu-toggle");
-const futureNav = document.querySelector(".sports-nav");
+const pageMenuToggle = document.querySelector(".sports-menu-toggle");
+const pageNav = document.querySelector(".sports-nav");
 
-futureMenuToggle?.addEventListener("click", () => {
-  const isOpen = futureMenuToggle.classList.toggle("is-open");
-  futureNav.classList.toggle("is-open", isOpen);
-  futureMenuToggle.setAttribute("aria-expanded", String(isOpen));
-  futureMenuToggle.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
+pageMenuToggle?.addEventListener("click", () => {
+  const isOpen = pageMenuToggle.classList.toggle("is-open");
+  pageNav?.classList.toggle("is-open", isOpen);
+  pageMenuToggle.setAttribute("aria-expanded", String(isOpen));
+  pageMenuToggle.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
 });
 
-futureNav?.querySelectorAll("a").forEach((link) => {
+pageNav?.querySelectorAll("a").forEach((link) => {
   link.addEventListener("click", () => {
-    futureMenuToggle?.classList.remove("is-open");
-    futureNav.classList.remove("is-open");
-    futureMenuToggle?.setAttribute("aria-expanded", "false");
-    futureMenuToggle?.setAttribute("aria-label", "Open navigation");
+    pageMenuToggle?.classList.remove("is-open");
+    pageNav.classList.remove("is-open");
+    pageMenuToggle?.setAttribute("aria-expanded", "false");
+    pageMenuToggle?.setAttribute("aria-label", "Open navigation");
   });
 });
 
-const futureBrandMark = document.querySelector(".sports-brand-mark");
-const futureBrandImage = document.querySelector("[data-brand-image]");
-const savedFutureBrandImage = (() => {
+const pageBrandMark = document.querySelector(".sports-brand-mark");
+const pageBrandImage = document.querySelector("[data-brand-image]");
+const savedBrandImage = (() => {
   try {
     return localStorage.getItem("about-me-brand-image");
   } catch {
@@ -27,13 +27,13 @@ const savedFutureBrandImage = (() => {
   }
 })();
 
-if (savedFutureBrandImage) {
-  futureBrandImage.src = savedFutureBrandImage;
-  futureBrandImage.hidden = false;
-  futureBrandMark.classList.add("has-image");
+if (savedBrandImage && pageBrandImage && pageBrandMark) {
+  pageBrandImage.src = savedBrandImage;
+  pageBrandImage.hidden = false;
+  pageBrandMark.classList.add("has-image");
 }
 
-const savedFutureProfile = (() => {
+const savedProfile = (() => {
   try {
     return JSON.parse(localStorage.getItem("about-me-profile"));
   } catch {
@@ -41,24 +41,31 @@ const savedFutureProfile = (() => {
   }
 })();
 
-if (savedFutureProfile?.name) {
-  const initials = savedFutureProfile.name
+const siteYear = document.querySelector("[data-site-year]");
+const footerName = document.querySelector(".sports-footer")?.firstElementChild;
+const savedName = typeof savedProfile?.name === "string" ? savedProfile.name.trim() : "";
+
+if (savedName) {
+  const initials = savedName
     .trim()
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 3)
     .map((part) => part[0])
     .join("");
-  document.querySelector("[data-brand-initials]").textContent = (initials || "AGE").toUpperCase();
-  document.querySelector(".sports-brand-name").textContent = savedFutureProfile.name;
-  document.querySelector(".sports-brand").setAttribute("aria-label", `${savedFutureProfile.name} home`);
-  const footerLabel = document.querySelector(".sports-footer").firstElementChild;
-  const yearElement = document.querySelector("#future-year");
-  footerLabel.replaceChildren(
-    document.createTextNode("© "),
-    yearElement,
-    document.createTextNode(` ${savedFutureProfile.name}`),
-  );
+  const initialsElement = document.querySelector("[data-brand-initials]");
+  const brandName = document.querySelector(".sports-brand-name");
+  const brandLink = document.querySelector(".sports-brand");
+  if (initialsElement) initialsElement.textContent = (initials || "AGE").toUpperCase();
+  if (brandName) brandName.textContent = savedName;
+  brandLink?.setAttribute("aria-label", `${savedName} home`);
+  if (footerName && siteYear) {
+    footerName.replaceChildren(
+      document.createTextNode("© "),
+      siteYear,
+      document.createTextNode(` ${savedName}`),
+    );
+  }
 }
 
-document.querySelector("#future-year").textContent = new Date().getFullYear();
+if (siteYear) siteYear.textContent = new Date().getFullYear();
