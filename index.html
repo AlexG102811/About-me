@@ -9,7 +9,7 @@
     />
     <title>Alex Gomez Ewert — Designer &amp; Builder</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=home-photo-slots-2" />
   </head>
   <body>
     <div class="page-shell">
@@ -78,7 +78,7 @@
             </div>
           </div>
 
-          <div class="hero-art" aria-label="Abstract portrait illustration" role="img">
+          <div class="hero-art">
             <div class="art-orbit art-orbit-one"></div>
             <div class="art-orbit art-orbit-two"></div>
             <div class="art-sun"></div>
@@ -102,6 +102,26 @@
                 aria-label="Upload hero picture"
               />
               <span class="art-card-arrow">↗</span>
+            </label>
+            <label class="art-card art-card-secondary" for="hero-image-secondary-input">
+              <span class="art-card-label">Photo two</span>
+              <span class="art-card-image-placeholder">
+                <strong>Add another photo</strong>
+                <small>Click to upload</small>
+              </span>
+              <img
+                class="art-card-image"
+                data-hero-secondary-image
+                alt="Additional homepage photo"
+                hidden
+              />
+              <input
+                id="hero-image-secondary-input"
+                type="file"
+                accept="image/*"
+                aria-label="Upload a second homepage photo"
+              />
+              <span class="art-card-arrow" aria-hidden="true">↗</span>
             </label>
             <span class="art-caption">A small corner<br />of the internet</span>
           </div>
@@ -225,6 +245,6 @@
       </aside>
     </div>
 
-    <script src="script.js?v=hero-photo"></script>
+    <script src="script.js?v=hero-photo-slots-2"></script>
   </body>
 </html>
