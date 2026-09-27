@@ -591,6 +591,37 @@ textarea {
   gap: 15px;
 }
 
+.admin-inbox-raw-extract {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.admin-inbox-raw-extract strong {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.admin-inbox-raw-extract p {
+  max-width: 520px;
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.admin-inbox-raw-extract form {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+
 .admin-inbox-file-label {
   display: grid;
   gap: 6px;
@@ -1314,6 +1345,11 @@ textarea {
     grid-column: auto;
   }
 
+  .admin-inbox-raw-extract {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .admin-inbox-backup-preview {
     grid-column: auto;
   }
@@ -1357,7 +1393,8 @@ textarea {
   }
 
   .admin-inbox-recovery-actions,
-  .admin-inbox-recovery-actions form {
+  .admin-inbox-recovery-actions form,
+  .admin-inbox-raw-extract form {
     align-items: flex-start;
     flex-direction: column;
   }

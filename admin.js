@@ -152,6 +152,9 @@ const restoreMessageBackupPreview = document.querySelector("#restore-message-bac
 const restoreMessageBackupSummary = document.querySelector("#restore-message-backup-summary");
 const restoreMessageBackupSenders = document.querySelector("#restore-message-backup-senders");
 const restoreMessageBackupSenderList = document.querySelector("#restore-message-backup-sender-list");
+const extractRawBackupForm = document.querySelector("#extract-raw-backup-form");
+const extractRawBackupFile = document.querySelector("#extract-raw-backup-file");
+const extractRawBackupButton = document.querySelector("#extract-raw-backup");
 const reasonChart = document.querySelector("#admin-reason-chart");
 const reasonEmpty = document.querySelector("#admin-reason-empty");
 const recentActivity = document.querySelector("#admin-recent-activity");
@@ -463,6 +466,67 @@ downloadMessageBackup?.addEventListener("click", async () => {
     if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = error.message || "Unable to download the inbox backup.";
   } finally {
     downloadMessageBackup.disabled = false;
+  }
+});
+
+extractRawBackupFile?.addEventListener("change", () => {
+  const backupFile = extractRawBackupFile.files?.[0];
+  extractRawBackupButton.disabled = !backupFile || backupFile.size > maxContactBackupBytes;
+  if (backupFile && backupFile.size > maxContactBackupBytes && inboxRecoveryStatus) {
+    inboxRecoveryStatus.textContent = "This damaged-inbox export is larger than 25 MB and cannot be checked.";
+  } else if (backupFile && inboxRecoveryStatus) {
+    inboxRecoveryStatus.textContent = "Ready to verify the damaged-inbox export.";
+  }
+});
+
+extractRawBackupForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const backupFile = extractRawBackupFile?.files?.[0];
+  if (!backupFile) {
+    if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "Choose a damaged-inbox export first.";
+    return;
+  }
+  if (backupFile.size > maxContactBackupBytes) {
+    if (inboxRecoveryStatus) {
+      inboxRecoveryStatus.textContent = "This damaged-inbox export is larger than 25 MB and cannot be checked.";
+    }
+    return;
+  }
+
+  extractRawBackupButton.disabled = true;
+  extractRawBackupFile.disabled = true;
+  if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "Verifying the damaged-inbox export…";
+  try {
+    const response = await fetch("/api/messages/extract-raw", {
+      method: "POST",
+      headers: { Accept: "application/octet-stream", "Content-Type": "application/json" },
+      body: await backupFile.text(),
+    });
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.error || "Unable to extract the damaged-inbox file.");
+    }
+
+    const recoveredFile = await response.blob();
+    const downloadUrl = URL.createObjectURL(recoveredFile);
+    const link = document.createElement("a");
+    const disposition = response.headers.get("Content-Disposition") || "";
+    link.href = downloadUrl;
+    link.download = disposition.match(/filename="([^"]+)"/)?.[1] || "contact-inbox-recovered.bin";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+    if (inboxRecoveryStatus) {
+      inboxRecoveryStatus.textContent = "Integrity check passed. The original file was downloaded separately; the inbox was not changed.";
+    }
+  } catch (error) {
+    if (inboxRecoveryStatus) {
+      inboxRecoveryStatus.textContent = error.message || "Unable to extract the damaged-inbox file.";
+    }
+  } finally {
+    extractRawBackupFile.disabled = false;
+    extractRawBackupButton.disabled = !extractRawBackupFile.files?.[0];
   }
 });
 

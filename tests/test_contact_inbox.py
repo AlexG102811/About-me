@@ -284,6 +284,78 @@ class ContactInboxTests(unittest.TestCase):
         raw_backup = json.loads(body.decode("utf-8"))
         self.assertEqual(server.decode_contact_raw_backup(raw_backup), original_bytes)
 
+    def test_damaged_backup_extraction_downloads_verified_bytes_without_restoring(self) -> None:
+        original_bytes = b"\xff\x00damaged inbox\xfe{"
+        existing_inbox = '{"untouched":true}'
+        self.storage.contents = existing_inbox
+        envelope = server.create_contact_raw_backup(original_bytes).decode("utf-8")
+
+        status, payload = self.request("POST", "/api/messages/extract-raw", body=envelope)
+        self.assertEqual(status, 401)
+        self.assertEqual(payload["error"], "Authentication required.")
+
+        status, headers, body = self.request_raw(
+            "POST",
+            "/api/messages/extract-raw",
+            body=envelope,
+            authenticated=True,
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["content-type"], "application/octet-stream")
+        self.assertEqual(
+            headers["content-disposition"],
+            'attachment; filename="contact-inbox-recovered.bin"',
+        )
+        self.assertEqual(headers["cache-control"], "no-store")
+        self.assertEqual(body, original_bytes)
+        self.assertEqual(self.storage.contents, existing_inbox)
+
+        regular_backup = server.create_contact_backup([self.record()]).decode("utf-8")
+        status, payload = self.request(
+            "POST",
+            "/api/messages/extract-raw",
+            body=regular_backup,
+            authenticated=True,
+        )
+        self.assertEqual(status, 400)
+        self.assertIn("damaged-inbox export", payload["error"].lower())
+        self.assertEqual(self.storage.contents, existing_inbox)
+
+        status, payload = self.request(
+            "POST",
+            "/api/messages/restore",
+            body=envelope,
+            authenticated=True,
+        )
+        self.assertEqual(status, 400)
+        self.assertIn("not a valid message list", payload["error"].lower())
+        self.assertEqual(self.storage.contents, existing_inbox)
+
+    def test_damaged_backup_extraction_rejects_invalid_or_altered_integrity(self) -> None:
+        original_bytes = b"damaged inbox bytes"
+        valid_envelope = json.loads(server.create_contact_raw_backup(original_bytes))
+        altered_data = json.loads(json.dumps(valid_envelope))
+        altered_data["rawContent"]["data"] += "AA=="
+        invalid_digest = json.loads(json.dumps(valid_envelope))
+        invalid_digest["integrity"]["value"] = "0" * 64
+        existing_inbox = '{"untouched":true}'
+        self.storage.contents = existing_inbox
+
+        for label, envelope in (
+            ("altered data", altered_data),
+            ("invalid digest", invalid_digest),
+        ):
+            with self.subTest(label=label):
+                status, payload = self.request(
+                    "POST",
+                    "/api/messages/extract-raw",
+                    body=json.dumps(envelope),
+                    authenticated=True,
+                )
+                self.assertEqual(status, 400)
+                self.assertIn("integrity", payload["error"].lower())
+                self.assertEqual(self.storage.contents, existing_inbox)
+
     def test_versioned_backup_download_passes_preview_and_restore(self) -> None:
         messages = [self.record(id="downloaded")]
         self.storage.contents = json.dumps(messages, separators=(",", ":"))

@@ -304,6 +304,24 @@ def decode_contact_raw_backup(backup: dict) -> bytes:
     return decoded_content
 
 
+def request_contact_raw_backup(handler: SimpleHTTPRequestHandler) -> bytes:
+    try:
+        length = int(handler.headers.get("Content-Length", "0"))
+    except ValueError as error:
+        raise ValueError("The damaged-inbox export size is invalid.") from error
+    if length <= 0 or length > MAX_CONTACT_BACKUP_BYTES:
+        raise ValueError("Choose a non-empty damaged-inbox export no larger than 25 MB.")
+
+    try:
+        backup = json.loads(handler.rfile.read(length).decode("utf-8"))
+    except (ValueError, RecursionError) as error:
+        raise ValueError("The damaged-inbox export must contain valid JSON.") from error
+
+    if not isinstance(backup, dict) or backup.get("format") != CONTACT_RAW_BACKUP_FORMAT:
+        raise ValueError("Choose a damaged-inbox export, not a regular message backup.")
+    return decode_contact_raw_backup(backup)
+
+
 def request_contact_backup(handler: SimpleHTTPRequestHandler) -> list[dict]:
     try:
         length = int(handler.headers.get("Content-Length", "0"))
@@ -498,6 +516,27 @@ class SiteHandler(SimpleHTTPRequestHandler):
 
         if path == "/messages":
             self.receive_message()
+            return
+
+        if path == "/api/messages/extract-raw":
+            if not has_valid_session(self):
+                message_response(self, {"error": "Authentication required."}, HTTPStatus.UNAUTHORIZED)
+                return
+            try:
+                raw_content = request_contact_raw_backup(self)
+            except ValueError as error:
+                message_response(self, {"error": str(error)}, HTTPStatus.BAD_REQUEST)
+                return
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header(
+                "Content-Disposition",
+                'attachment; filename="contact-inbox-recovered.bin"',
+            )
+            self.send_header("Content-Length", str(len(raw_content)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(raw_content)
             return
 
         if path == "/api/messages/preview":

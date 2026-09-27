@@ -143,6 +143,30 @@
                 <button class="admin-reset" id="restore-message-backup" type="submit" disabled>Restore inbox ↗</button>
               </form>
             </div>
+            <div class="admin-inbox-raw-extract">
+              <div>
+                <strong>Recover the original file from a damaged export</strong>
+                <p>
+                  Choose a damaged-inbox export to verify it and download the preserved bytes as a separate file.
+                  This does not restore or change any messages.
+                </p>
+              </div>
+              <form id="extract-raw-backup-form">
+                <label class="admin-inbox-file-label" for="extract-raw-backup-file">
+                  Choose damaged-inbox export
+                  <input
+                    id="extract-raw-backup-file"
+                    name="damaged-backup"
+                    type="file"
+                    accept=".json,application/json"
+                    required
+                  />
+                </label>
+                <button class="admin-reset" id="extract-raw-backup" type="submit" disabled>
+                  Verify and download original
+                </button>
+              </form>
+            </div>
             <div class="admin-inbox-backup-preview" id="restore-message-backup-preview" hidden aria-live="polite">
               <strong id="restore-message-backup-summary"></strong>
               <div id="restore-message-backup-senders" hidden>
@@ -299,6 +323,6 @@
       </main>
     </div>
 
-    <script src="admin.js?v=contact-recovery-1"></script>
+    <script src="admin.js?v=contact-recovery-2"></script>
   </body>
 </html>
