@@ -243,15 +243,46 @@ class ContactInboxTests(unittest.TestCase):
         self.assertIn("attachment; filename=\"contact-inbox-backup-", headers["content-disposition"])
         self.assertEqual(headers["cache-control"], "no-store")
 
-        # Export must remain available even when the stored inbox itself is malformed.
-        self.storage.contents = "{"
+        # Malformed content is preserved byte-for-byte in an integrity-checked envelope.
+        for malformed_contents in ("{", "{}"):
+            with self.subTest(malformed_contents=malformed_contents):
+                self.storage.contents = malformed_contents
+                status, _headers, body = self.request_raw(
+                    "GET",
+                    "/api/messages/backup",
+                    authenticated=True,
+                )
+                self.assertEqual(status, 200)
+                raw_backup = json.loads(body.decode("utf-8"))
+                self.assertEqual(raw_backup["format"], server.CONTACT_RAW_BACKUP_FORMAT)
+                self.assertEqual(raw_backup["formatVersion"], server.CONTACT_RAW_BACKUP_FORMAT_VERSION)
+                self.assertEqual(
+                    raw_backup["integrity"],
+                    {
+                        "version": server.CONTACT_RAW_BACKUP_INTEGRITY_VERSION,
+                        "algorithm": "sha256",
+                        "value": server.contact_raw_backup_integrity(malformed_contents.encode("utf-8")),
+                    },
+                )
+                self.assertEqual(
+                    server.decode_contact_raw_backup(raw_backup),
+                    malformed_contents.encode("utf-8"),
+                )
+
+    def test_malformed_backup_export_preserves_non_utf8_legacy_bytes(self) -> None:
+        original_bytes = b"\xff\x00damaged\xfe{"
+        self.storage.contents = None
+        self.legacy_path.write_bytes(original_bytes)
+
         status, _headers, body = self.request_raw(
             "GET",
             "/api/messages/backup",
             authenticated=True,
         )
+
         self.assertEqual(status, 200)
-        self.assertEqual(body, b"{")
+        raw_backup = json.loads(body.decode("utf-8"))
+        self.assertEqual(server.decode_contact_raw_backup(raw_backup), original_bytes)
 
     def test_versioned_backup_download_passes_preview_and_restore(self) -> None:
         messages = [self.record(id="downloaded")]
@@ -282,6 +313,42 @@ class ContactInboxTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(restored, {"ok": True, "count": 1})
         self.assertEqual(json.loads(self.storage.contents or "null"), messages)
+
+    def test_damaged_backup_download_is_verified_but_not_previewed_or_restored(self) -> None:
+        self.storage.contents = "{"
+        status, _headers, body = self.request_raw(
+            "GET",
+            "/api/messages/backup",
+            authenticated=True,
+        )
+        self.assertEqual(status, 200)
+        damaged_backup = json.loads(body.decode("utf-8"))
+        exported_content = body.decode("utf-8")
+
+        for action in ("/api/messages/preview", "/api/messages/restore"):
+            with self.subTest(action=action):
+                status, payload = self.request(
+                    "POST",
+                    action,
+                    body=exported_content,
+                    authenticated=True,
+                )
+                self.assertEqual(status, 400)
+                self.assertIn("not a valid message list", payload["error"].lower())
+                self.assertEqual(self.storage.contents, "{")
+
+        damaged_backup["rawContent"]["data"] += "AA=="
+        for action in ("/api/messages/preview", "/api/messages/restore"):
+            with self.subTest(action=action, tampered=True):
+                status, payload = self.request(
+                    "POST",
+                    action,
+                    body=json.dumps(damaged_backup),
+                    authenticated=True,
+                )
+                self.assertEqual(status, 400)
+                self.assertIn("integrity", payload["error"].lower())
+                self.assertEqual(self.storage.contents, "{")
 
     def test_backup_preview_requires_authentication_and_does_not_change_inbox(self) -> None:
         existing_inbox = json.dumps([self.record(id="existing")], separators=(",", ":"))

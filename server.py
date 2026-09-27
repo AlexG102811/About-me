@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
 import html
@@ -36,6 +37,9 @@ MESSAGE_WINDOW = 60 * 15
 MAX_MESSAGE_ATTEMPTS = 10
 MAX_CONTACT_BACKUP_BYTES = 25 * 1024 * 1024
 CONTACT_BACKUP_FORMAT_VERSION = 1
+CONTACT_RAW_BACKUP_FORMAT = "contact-inbox-raw"
+CONTACT_RAW_BACKUP_FORMAT_VERSION = 1
+CONTACT_RAW_BACKUP_INTEGRITY_VERSION = 1
 SESSION_COOKIE = "admin_session"
 
 sessions: dict[str, float] = {}
@@ -248,6 +252,58 @@ def create_contact_backup(messages: list) -> bytes:
     return json.dumps(backup, ensure_ascii=False, indent=2, allow_nan=False).encode("utf-8")
 
 
+def contact_raw_backup_integrity(raw_content: bytes) -> str:
+    return hashlib.sha256(raw_content).hexdigest()
+
+
+def create_contact_raw_backup(raw_content: bytes) -> bytes:
+    backup = {
+        "format": CONTACT_RAW_BACKUP_FORMAT,
+        "formatVersion": CONTACT_RAW_BACKUP_FORMAT_VERSION,
+        "integrity": {
+            "version": CONTACT_RAW_BACKUP_INTEGRITY_VERSION,
+            "algorithm": "sha256",
+            "value": contact_raw_backup_integrity(raw_content),
+        },
+        "rawContent": {
+            "encoding": "base64",
+            "data": base64.b64encode(raw_content).decode("ascii"),
+        },
+    }
+    return json.dumps(backup, ensure_ascii=False, indent=2).encode("utf-8")
+
+
+def decode_contact_raw_backup(backup: dict) -> bytes:
+    if type(backup.get("formatVersion")) is not int or backup["formatVersion"] != CONTACT_RAW_BACKUP_FORMAT_VERSION:
+        raise ValueError("The damaged-inbox export uses an unsupported format version.")
+
+    integrity = backup.get("integrity")
+    raw_content = backup.get("rawContent")
+    if (
+        not isinstance(integrity, dict)
+        or type(integrity.get("version")) is not int
+        or integrity["version"] != CONTACT_RAW_BACKUP_INTEGRITY_VERSION
+        or integrity.get("algorithm") != "sha256"
+        or not isinstance(integrity.get("value"), str)
+        or not re.fullmatch(r"[0-9a-f]{64}", integrity["value"])
+        or not isinstance(raw_content, dict)
+        or raw_content.get("encoding") != "base64"
+        or not isinstance(raw_content.get("data"), str)
+        or not raw_content["data"].isascii()
+    ):
+        raise ValueError("The damaged-inbox export has missing or unsupported integrity information.")
+
+    try:
+        decoded_content = base64.b64decode(raw_content["data"], validate=True)
+    except (TypeError, ValueError) as error:
+        raise ValueError("The damaged-inbox export integrity information could not be checked.") from error
+
+    expected_integrity = contact_raw_backup_integrity(decoded_content)
+    if not hmac.compare_digest(integrity["value"], expected_integrity):
+        raise ValueError("The damaged-inbox export integrity check failed. The file may have been changed or truncated.")
+    return decoded_content
+
+
 def request_contact_backup(handler: SimpleHTTPRequestHandler) -> list[dict]:
     try:
         length = int(handler.headers.get("Content-Length", "0"))
@@ -261,6 +317,11 @@ def request_contact_backup(handler: SimpleHTTPRequestHandler) -> list[dict]:
     except (ValueError, RecursionError) as error:
         raise ValueError("The backup file must contain valid JSON.") from error
 
+    if isinstance(backup, dict) and backup.get("format") == CONTACT_RAW_BACKUP_FORMAT:
+        decode_contact_raw_backup(backup)
+        raise ValueError(
+            "The damaged-inbox export passed its integrity check, but its preserved content is not a valid message list."
+        )
     if isinstance(backup, dict):
         if type(backup.get("formatVersion")) is not int or backup["formatVersion"] != CONTACT_BACKUP_FORMAT_VERSION:
             raise ValueError("The backup file uses an unsupported format version.")
@@ -394,9 +455,11 @@ class SiteHandler(SimpleHTTPRequestHandler):
                 stored_messages = json.loads(backup.decode("utf-8"))
                 if isinstance(stored_messages, list):
                     backup = create_contact_backup(stored_messages)
+                else:
+                    backup = create_contact_raw_backup(backup)
             except (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError, RecursionError):
-                # Keep malformed stored content downloadable byte-for-byte for recovery.
-                pass
+                # Preserve malformed content byte-for-byte inside an integrity-checked envelope.
+                backup = create_contact_raw_backup(backup)
 
             filename = f"contact-inbox-backup-{datetime.now(timezone.utc):%Y%m%d-%H%M%SZ}.json"
             self.send_response(HTTPStatus.OK)
