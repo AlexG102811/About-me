@@ -5,6 +5,8 @@ from __future__ import annotations
 import http.client
 import json
 import os
+import shutil
+import subprocess
 import tempfile
 import threading
 import unittest
@@ -355,6 +357,61 @@ class ContactInboxTests(unittest.TestCase):
                 self.assertEqual(status, 400)
                 self.assertIn("integrity", payload["error"].lower())
                 self.assertEqual(self.storage.contents, existing_inbox)
+
+    @unittest.skipUnless(
+        shutil.which("node")
+        and (
+            shutil.which("chromium")
+            or Path("/repl/tools/bin/chromium").is_file()
+        ),
+        "Node.js and Chromium are required for the admin browser test.",
+    )
+    def test_admin_dashboard_extracts_only_verified_damaged_backup_bytes(self) -> None:
+        original_bytes = b"\x00damaged inbox bytes\xff{"
+        existing_inbox = json.dumps([self.record(id="browser-baseline")], separators=(",", ":"))
+        self.storage.contents = existing_inbox
+
+        valid_envelope = json.loads(server.create_contact_raw_backup(original_bytes))
+        altered_envelope = json.loads(json.dumps(valid_envelope))
+        altered_envelope["integrity"]["value"] = "0" * 64
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            valid_path = temp_path / "damaged-inbox.json"
+            altered_path = temp_path / "altered-damaged-inbox.json"
+            download_path = temp_path / "downloads"
+            download_path.mkdir()
+            valid_path.write_text(json.dumps(valid_envelope), encoding="utf-8")
+            altered_path.write_text(json.dumps(altered_envelope), encoding="utf-8")
+
+            browser_script = Path(__file__).with_name("admin_backup_browser.js")
+            chromium = shutil.which("chromium") or "/repl/tools/bin/chromium"
+            result = subprocess.run(
+                [
+                    shutil.which("node") or "node",
+                    str(browser_script),
+                    f"http://127.0.0.1:{self.http_server.server_port}",
+                    self.session_token,
+                    str(valid_path),
+                    str(altered_path),
+                    str(download_path),
+                    chromium,
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            self.assertEqual(
+                result.returncode,
+                0,
+                msg=f"Browser extraction check failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+            )
+
+            recovered_files = list(download_path.glob("contact-inbox-recovered*"))
+            self.assertEqual([path.name for path in recovered_files], ["contact-inbox-recovered.bin"])
+            self.assertEqual(recovered_files[0].read_bytes(), original_bytes)
+            self.assertEqual(self.storage.contents, existing_inbox)
 
     def test_versioned_backup_download_passes_preview_and_restore(self) -> None:
         messages = [self.record(id="downloaded")]
