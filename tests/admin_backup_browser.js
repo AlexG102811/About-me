@@ -125,6 +125,109 @@ async function waitForStatus(connection, pattern, description) {
   }, description);
 }
 
+async function checkRecoveryLayout(connection) {
+  const widths = [320, 360, 390, 430, 480, 520, 600, 601, 768];
+  for (const width of widths) {
+    await connection.command("Emulation.setDeviceMetricsOverride", {
+      width,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: true,
+    });
+    const layout = await evaluate(connection, `(() => {
+      const recovery = document.querySelector(".admin-inbox-recovery");
+      const rawExtract = document.querySelector(".admin-inbox-raw-extract");
+      const controls = [
+        "#restore-message-backup-file",
+        "#restore-message-backup",
+        "#extract-raw-backup-file",
+        "#extract-raw-backup",
+      ].map((selector) => {
+        const element = document.querySelector(selector);
+        const rect = element.getBoundingClientRect();
+        return {
+          selector,
+          left: rect.left,
+          right: rect.right,
+          width: rect.width,
+          height: rect.height,
+          parentRight: element.parentElement.getBoundingClientRect().right,
+          scrollWidth: element.scrollWidth,
+          clientWidth: element.clientWidth,
+        };
+      });
+      const text = [
+        document.querySelector(".admin-inbox-recovery-note"),
+        rawExtract.querySelector("p"),
+      ].map((element) => ({
+        scrollWidth: element.scrollWidth,
+        clientWidth: element.clientWidth,
+        fontSize: parseFloat(getComputedStyle(element).fontSize),
+      }));
+      const restore = getComputedStyle(document.querySelector("#restore-message-backup"));
+      const extract = getComputedStyle(document.querySelector("#extract-raw-backup"));
+      return {
+        viewport: window.innerWidth,
+        layoutViewport: document.documentElement.clientWidth,
+        documentWidth: document.documentElement.scrollWidth,
+        recoveryRight: recovery.getBoundingClientRect().right,
+        recoveryScrollWidth: recovery.scrollWidth,
+        recoveryClientWidth: recovery.clientWidth,
+        rawScrollWidth: rawExtract.scrollWidth,
+        rawClientWidth: rawExtract.clientWidth,
+        controls,
+        text,
+        restoreColor: restore.color,
+        restoreBackground: restore.backgroundColor,
+        extractColor: extract.color,
+        extractBackground: extract.backgroundColor,
+        overflowElements: Array.from(document.querySelectorAll("body *"))
+          .map((element) => ({ element, rect: element.getBoundingClientRect() }))
+          .filter(({ rect }) => rect.right > document.documentElement.clientWidth + 1)
+          .sort((left, right) => right.rect.right - left.rect.right)
+          .slice(0, 6)
+          .map(({ element, rect }) => ({
+            tag: element.tagName,
+            className: element.className?.baseVal || element.className || "",
+            id: element.id,
+            left: rect.left,
+            right: rect.right,
+            text: element.textContent?.trim().slice(0, 60) || "",
+          })),
+      };
+    })()`);
+
+    const issues = [];
+    if (layout.documentWidth > layout.layoutViewport) {
+      issues.push(`page scrolls horizontally (${layout.documentWidth}px versus ${layout.layoutViewport}px)`);
+    }
+    if (layout.recoveryScrollWidth > layout.recoveryClientWidth + 1) issues.push("recovery card overflows");
+    if (layout.rawScrollWidth > layout.rawClientWidth + 1) issues.push("damaged-file card overflows");
+    for (const control of layout.controls) {
+      if (control.left < -1 || control.right > width + 1 || control.right > layout.recoveryRight + 1) {
+        issues.push(`${control.selector} is outside the visible recovery area`);
+      }
+      if (control.scrollWidth > control.clientWidth + 1) {
+        issues.push(`${control.selector} is clipped`);
+      }
+      if (width <= 600 && control.height < 44) {
+        issues.push(`${control.selector} is shorter than the 44px phone touch target`);
+      }
+    }
+    if (layout.text.some((item) => item.scrollWidth > item.clientWidth + 1 || item.fontSize < 11)) {
+      issues.push("recovery explanation is clipped or too small");
+    }
+    if (layout.restoreBackground === layout.extractBackground || layout.restoreColor === layout.extractColor) {
+      issues.push("restore and extraction actions are not visually distinct");
+    }
+    if (issues.length) {
+      throw new Error(`Recovery layout failed at ${width}px: ${issues.join("; ")}. ${JSON.stringify(layout)}`);
+    }
+  }
+  await connection.command("Emulation.clearDeviceMetricsOverride");
+  console.log(`Admin recovery layout passed at ${widths.join(", ")}px.`);
+}
+
 async function run() {
   const profilePath = fs.mkdtempSync(path.join(os.tmpdir(), "admin-backup-chromium-"));
   const browser = spawn(
@@ -195,6 +298,7 @@ async function run() {
     );
     if (!hasRecoveryControl) throw new Error("The admin dashboard did not show damaged-backup recovery.");
 
+    await checkRecoveryLayout(pageConnection);
     await selectBackup(pageConnection, validBackupPath);
     await evaluate(pageConnection, "document.querySelector('#extract-raw-backup-form').requestSubmit()");
     await waitForStatus(pageConnection, /integrity check passed/i, "the successful extraction message");

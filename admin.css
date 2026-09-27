@@ -685,6 +685,28 @@ textarea {
   opacity: 0.55;
 }
 
+.admin-inbox-recovery .admin-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  line-height: 1.4;
+  text-align: left;
+}
+
+.admin-inbox-recovery #restore-message-backup {
+  border-color: var(--lime);
+  color: var(--dark);
+  background: var(--lime);
+}
+
+.admin-inbox-raw-extract #extract-raw-backup {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
 .admin-messages-list {
   border-top: 1px solid var(--line);
 }
@@ -1372,7 +1394,51 @@ textarea {
   }
 }
 
+@media (max-width: 600px) {
+  .admin-inbox-recovery-actions,
+  .admin-inbox-recovery-actions form,
+  .admin-inbox-raw-extract form {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .admin-inbox-recovery-actions,
+  .admin-inbox-recovery-actions form,
+  .admin-inbox-raw-extract form,
+  .admin-inbox-file-label {
+    width: 100%;
+  }
+
+  .admin-inbox-file-label {
+    font-size: 11px;
+  }
+
+  .admin-inbox-file-label input {
+    width: 100%;
+    max-width: 100%;
+    min-height: 44px;
+    font-size: 12px;
+  }
+
+  .admin-inbox-recovery .admin-reset {
+    width: 100%;
+    min-height: 44px;
+    font-size: 11px;
+  }
+}
+
 @media (max-width: 480px) {
+  .admin-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .admin-nav a {
+    justify-content: flex-start;
+  }
+
   .admin-top-actions {
     align-items: flex-start;
     flex-direction: column;
@@ -1388,13 +1454,6 @@ textarea {
   }
 
   .admin-form-actions {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .admin-inbox-recovery-actions,
-  .admin-inbox-recovery-actions form,
-  .admin-inbox-raw-extract form {
     align-items: flex-start;
     flex-direction: column;
   }
