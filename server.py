@@ -228,7 +228,7 @@ def request_contact_backup(handler: SimpleHTTPRequestHandler) -> list[dict]:
     except ValueError as error:
         raise ValueError("The backup file size is invalid.") from error
     if length <= 0 or length > MAX_CONTACT_BACKUP_BYTES:
-        raise ValueError("Choose a non-empty backup file under 25 MB.")
+        raise ValueError("Choose a non-empty backup file no larger than 25 MB.")
 
     try:
         messages = json.loads(handler.rfile.read(length).decode("utf-8"))
@@ -240,6 +240,24 @@ def request_contact_backup(handler: SimpleHTTPRequestHandler) -> list[dict]:
         return [normalize_message(message) for message in messages]
     except RuntimeError as error:
         raise ValueError(f"The backup contains invalid messages: {error}") from error
+
+
+def contact_backup_preview(messages: list[dict]) -> dict:
+    def recent_key(item: tuple[int, dict]) -> tuple[datetime, int]:
+        index, message = item
+        try:
+            submitted_at = datetime.fromisoformat(message["submittedAt"].replace("Z", "+00:00"))
+        except (ValueError, OverflowError):
+            submitted_at = datetime.min.replace(tzinfo=timezone.utc)
+        if submitted_at.tzinfo is None:
+            submitted_at = submitted_at.replace(tzinfo=timezone.utc)
+        return submitted_at, index
+
+    recent_messages = sorted(enumerate(messages), key=recent_key, reverse=True)[:3]
+    return {
+        "count": len(messages),
+        "senders": [message["name"].strip() for _, message in recent_messages],
+    }
 
 
 def message_response(handler: SimpleHTTPRequestHandler, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
@@ -355,6 +373,18 @@ class SiteHandler(SimpleHTTPRequestHandler):
 
         if path == "/messages":
             self.receive_message()
+            return
+
+        if path == "/api/messages/preview":
+            if not has_valid_session(self):
+                message_response(self, {"error": "Authentication required."}, HTTPStatus.UNAUTHORIZED)
+                return
+            try:
+                messages = request_contact_backup(self)
+            except ValueError as error:
+                message_response(self, {"error": str(error)}, HTTPStatus.BAD_REQUEST)
+                return
+            message_response(self, {"ok": True, **contact_backup_preview(messages)})
             return
 
         if path == "/api/messages/restore":

@@ -148,6 +148,10 @@ const restoreMessageBackupForm = document.querySelector("#restore-message-backup
 const restoreMessageBackupFile = document.querySelector("#restore-message-backup-file");
 const restoreMessageBackupButton = document.querySelector("#restore-message-backup");
 const inboxRecoveryStatus = document.querySelector("#admin-inbox-recovery-status");
+const restoreMessageBackupPreview = document.querySelector("#restore-message-backup-preview");
+const restoreMessageBackupSummary = document.querySelector("#restore-message-backup-summary");
+const restoreMessageBackupSenders = document.querySelector("#restore-message-backup-senders");
+const restoreMessageBackupSenderList = document.querySelector("#restore-message-backup-sender-list");
 const reasonChart = document.querySelector("#admin-reason-chart");
 const reasonEmpty = document.querySelector("#admin-reason-empty");
 const recentActivity = document.querySelector("#admin-recent-activity");
@@ -156,6 +160,9 @@ const messageFilters = document.querySelectorAll("[data-message-filter]");
 const reasonLabels = ["General", "Baseball", "Gaming", "School", "Other"];
 let allMessages = [];
 let activeMessageFilter = "all";
+let backupPreviewSequence = 0;
+let previewedBackupFile = null;
+const maxContactBackupBytes = 25 * 1024 * 1024;
 
 const messageInitials = (name) => {
   const initials = name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("");
@@ -419,6 +426,15 @@ const loadMessages = async () => {
 
 refreshMessages?.addEventListener("click", loadMessages);
 
+const clearBackupPreview = () => {
+  previewedBackupFile = null;
+  restoreMessageBackupButton.disabled = true;
+  if (restoreMessageBackupPreview) restoreMessageBackupPreview.hidden = true;
+  if (restoreMessageBackupSummary) restoreMessageBackupSummary.textContent = "";
+  if (restoreMessageBackupSenders) restoreMessageBackupSenders.hidden = true;
+  restoreMessageBackupSenderList?.replaceChildren();
+};
+
 downloadMessageBackup?.addEventListener("click", async () => {
   downloadMessageBackup.disabled = true;
   if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "Preparing inbox backup…";
@@ -450,6 +466,58 @@ downloadMessageBackup?.addEventListener("click", async () => {
   }
 });
 
+restoreMessageBackupFile?.addEventListener("change", async () => {
+  const previewSequence = ++backupPreviewSequence;
+  const backupFile = restoreMessageBackupFile.files?.[0];
+  clearBackupPreview();
+  if (!backupFile) {
+    if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "";
+    return;
+  }
+  if (backupFile.size > maxContactBackupBytes) {
+    if (inboxRecoveryStatus) {
+      inboxRecoveryStatus.textContent = "This backup is larger than 25 MB and cannot be previewed.";
+    }
+    return;
+  }
+
+  if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "Checking backup…";
+  try {
+    const response = await fetch("/api/messages/preview", {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: await backupFile.text(),
+    });
+    const result = await response.json();
+    if (previewSequence !== backupPreviewSequence || restoreMessageBackupFile.files?.[0] !== backupFile) return;
+    if (!response.ok) throw new Error(result.error || "Unable to preview this backup.");
+
+    previewedBackupFile = backupFile;
+    restoreMessageBackupButton.disabled = false;
+    if (restoreMessageBackupSummary) {
+      const count = Number(result.count) || 0;
+      restoreMessageBackupSummary.textContent =
+        `Valid backup · ${count} message${count === 1 ? "" : "s"}`;
+    }
+    if (restoreMessageBackupSenderList && restoreMessageBackupSenders) {
+      restoreMessageBackupSenderList.replaceChildren();
+      (Array.isArray(result.senders) ? result.senders : []).forEach((sender) => {
+        const item = document.createElement("li");
+        item.textContent = String(sender);
+        restoreMessageBackupSenderList.append(item);
+      });
+      restoreMessageBackupSenders.hidden = restoreMessageBackupSenderList.childElementCount === 0;
+    }
+    if (restoreMessageBackupPreview) restoreMessageBackupPreview.hidden = false;
+    if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "Review the backup summary before restoring.";
+  } catch (error) {
+    if (previewSequence !== backupPreviewSequence) return;
+    if (inboxRecoveryStatus) {
+      inboxRecoveryStatus.textContent = error.message || "Unable to preview this backup.";
+    }
+  }
+});
+
 restoreMessageBackupForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const backupFile = restoreMessageBackupFile?.files?.[0];
@@ -457,9 +525,17 @@ restoreMessageBackupForm?.addEventListener("submit", async (event) => {
     if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "Choose a JSON backup file first.";
     return;
   }
-  if (!window.confirm("Restore this backup and replace every message currently in the inbox?")) return;
+  if (previewedBackupFile !== backupFile) {
+    if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "Wait for a valid backup preview before restoring.";
+    return;
+  }
+  const previewCount = restoreMessageBackupSummary?.textContent.match(/\d+/)?.[0] || "0";
+  if (!window.confirm(
+    `This backup contains ${previewCount} message${previewCount === "1" ? "" : "s"}. Restore it and replace every message currently in the inbox?`,
+  )) return;
 
   restoreMessageBackupButton.disabled = true;
+  restoreMessageBackupFile.disabled = true;
   if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "Validating backup…";
   try {
     const response = await fetch("/api/messages/restore", {
@@ -473,11 +549,14 @@ restoreMessageBackupForm?.addEventListener("submit", async (event) => {
       inboxRecoveryStatus.textContent = `Restored ${result.count} message${result.count === 1 ? "" : "s"}.`;
     }
     restoreMessageBackupForm.reset();
+    backupPreviewSequence += 1;
+    clearBackupPreview();
     await loadMessages();
   } catch (error) {
     if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = error.message || "Unable to restore the inbox.";
   } finally {
-    restoreMessageBackupButton.disabled = false;
+    restoreMessageBackupFile.disabled = false;
+    restoreMessageBackupButton.disabled = previewedBackupFile !== restoreMessageBackupFile.files?.[0];
   }
 });
 

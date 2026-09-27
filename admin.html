@@ -124,7 +124,7 @@
               <p class="admin-section-label"><span>Inbox tools</span></p>
               <h3 id="admin-inbox-recovery-title">Back up or restore messages.</h3>
               <p class="admin-inbox-recovery-note">
-                Restore replaces the entire inbox. Only a complete, valid JSON backup will be accepted.
+                Preview a valid JSON backup before restoring. Restoring replaces the entire inbox.
               </p>
             </div>
             <div class="admin-inbox-recovery-actions">
@@ -140,8 +140,15 @@
                     required
                   />
                 </label>
-                <button class="admin-reset" id="restore-message-backup" type="submit">Restore inbox ↗</button>
+                <button class="admin-reset" id="restore-message-backup" type="submit" disabled>Restore inbox ↗</button>
               </form>
+            </div>
+            <div class="admin-inbox-backup-preview" id="restore-message-backup-preview" hidden aria-live="polite">
+              <strong id="restore-message-backup-summary"></strong>
+              <div id="restore-message-backup-senders" hidden>
+                <p>Recent senders</p>
+                <ul id="restore-message-backup-sender-list"></ul>
+              </div>
             </div>
             <p class="admin-inbox-recovery-status" id="admin-inbox-recovery-status" role="status" aria-live="polite"></p>
           </section>

@@ -243,6 +243,72 @@ class ContactInboxTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(body, b"{")
 
+    def test_backup_preview_requires_authentication_and_does_not_change_inbox(self) -> None:
+        existing_inbox = json.dumps([self.record(id="existing")], separators=(",", ":"))
+        self.storage.contents = existing_inbox
+        backup = [
+            self.record(id="older", name="Older Sender", submittedAt="2026-09-20T12:00:00+00:00"),
+            self.record(id="newest", name="Newest Sender", submittedAt="2026-09-27T12:00:00+00:00"),
+            self.record(id="middle", name="Middle Sender", submittedAt="2026-09-25T12:00:00+00:00"),
+            self.record(id="second-newest", name="Second Sender", submittedAt="2026-09-26T12:00:00+00:00"),
+        ]
+        backup_content = json.dumps(backup)
+
+        status, payload = self.request("POST", "/api/messages/preview", body=backup_content)
+        self.assertEqual(status, 401)
+        self.assertEqual(payload["error"], "Authentication required.")
+        self.assertEqual(self.storage.contents, existing_inbox)
+
+        status, payload = self.request(
+            "POST",
+            "/api/messages/preview",
+            body=backup_content,
+            authenticated=True,
+        )
+
+        self.assertEqual(status, 200)
+        self.assertEqual(
+            payload,
+            {
+                "ok": True,
+                "count": 4,
+                "senders": ["Newest Sender", "Second Sender", "Middle Sender"],
+            },
+        )
+        self.assertEqual(self.storage.contents, existing_inbox)
+
+    def test_invalid_or_oversized_backup_preview_does_not_change_inbox(self) -> None:
+        existing_inbox = json.dumps([self.record()], separators=(",", ":"))
+        self.storage.contents = existing_inbox
+        invalid_backups = (
+            "{",
+            json.dumps({"messages": [self.record()]}),
+            json.dumps([self.record(id="valid-first"), {"id": "incomplete"}]),
+        )
+
+        for backup in invalid_backups:
+            with self.subTest(backup=backup):
+                status, payload = self.request(
+                    "POST",
+                    "/api/messages/preview",
+                    body=backup,
+                    authenticated=True,
+                )
+                self.assertEqual(status, 400)
+                self.assertIn("backup", payload["error"].lower())
+                self.assertEqual(self.storage.contents, existing_inbox)
+
+        with patch.object(server, "MAX_CONTACT_BACKUP_BYTES", 5):
+            status, payload = self.request(
+                "POST",
+                "/api/messages/preview",
+                body='"12345"',
+                authenticated=True,
+            )
+        self.assertEqual(status, 400)
+        self.assertIn("25 MB", payload["error"])
+        self.assertEqual(self.storage.contents, existing_inbox)
+
     def test_restore_requires_authentication(self) -> None:
         original_contents = json.dumps([self.record()])
         self.storage.contents = original_contents
