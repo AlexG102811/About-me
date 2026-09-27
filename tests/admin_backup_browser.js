@@ -240,6 +240,107 @@ async function checkRecoveryLayout(connection) {
   console.log(`Admin recovery layout passed at ${widths.join(", ")}px.`);
 }
 
+async function checkRemainingDashboardLayout(connection) {
+  const widths = [320, 360, 390, 430];
+  for (const width of widths) {
+    await connection.command("Emulation.setDeviceMetricsOverride", {
+      width,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: true,
+    });
+    const layout = await evaluate(connection, `(() => {
+      const targetSelectors = [
+        ".admin-nav a",
+        ".admin-top-actions a",
+        "#refresh-messages",
+        ".admin-message-filter",
+        ".admin-message-action",
+        ".admin-stat-card a",
+        ".admin-dark-link",
+        "#admin-profile-form input",
+        "#admin-profile-form textarea",
+        "#admin-profile-form button",
+        ".admin-preview-card a",
+        ".admin-page-row",
+      ];
+      const targets = targetSelectors.flatMap((selector) =>
+        Array.from(document.querySelectorAll(selector)).map((element) => {
+          const rect = element.getBoundingClientRect();
+          return {
+            selector,
+            text: element.textContent?.trim().replace(/\\s+/g, " ").slice(0, 45) || element.name || "",
+            left: rect.left,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height,
+          };
+        }),
+      );
+      const panels = [
+        ".admin-overview",
+        ".admin-messages-section",
+        ".admin-profile-section",
+        ".admin-pages-section",
+      ].map((selector) => {
+        const element = document.querySelector(selector);
+        return {
+          selector,
+          scrollWidth: element.scrollWidth,
+          clientWidth: element.clientWidth,
+        };
+      });
+      const summary = document.querySelector(".admin-messages-summary");
+      return {
+        viewport: document.documentElement.clientWidth,
+        documentWidth: document.documentElement.scrollWidth,
+        summary: { scrollWidth: summary.scrollWidth, clientWidth: summary.clientWidth },
+        messageCardCount: document.querySelectorAll(".admin-message-card").length,
+        panels,
+        targets,
+        overflowElements: Array.from(document.querySelectorAll("body *"))
+          .map((element) => ({ element, rect: element.getBoundingClientRect() }))
+          .filter(({ rect }) => rect.right > document.documentElement.clientWidth + 1)
+          .sort((left, right) => right.rect.right - left.rect.right)
+          .slice(0, 6)
+          .map(({ element, rect }) => ({
+            tag: element.tagName,
+            className: element.className?.baseVal || element.className || "",
+            id: element.id,
+            left: rect.left,
+            right: rect.right,
+            text: element.textContent?.trim().replace(/\\s+/g, " ").slice(0, 60) || "",
+          })),
+      };
+    })()`);
+
+    const issues = [];
+    if (layout.documentWidth > layout.viewport) {
+      issues.push(`page scrolls horizontally (${layout.documentWidth}px versus ${layout.viewport}px)`);
+    }
+    if (layout.summary.scrollWidth > layout.summary.clientWidth + 1) {
+      issues.push("message summary overflows its section");
+    }
+    if (layout.messageCardCount < 1) issues.push("the rendered message list is empty");
+    for (const panel of layout.panels) {
+      if (panel.scrollWidth > panel.clientWidth + 1) issues.push(`${panel.selector} overflows`);
+    }
+    for (const target of layout.targets) {
+      if (target.left < -1 || target.right > width + 1) {
+        issues.push(`${target.selector} is outside the viewport`);
+      }
+      if (target.height < 44) {
+        issues.push(`${target.selector} has a ${Math.round(target.height)}px tap target`);
+      }
+    }
+    if (issues.length) {
+      throw new Error(`Remaining dashboard layout failed at ${width}px: ${issues.join("; ")}. ${JSON.stringify(layout)}`);
+    }
+  }
+  await connection.command("Emulation.clearDeviceMetricsOverride");
+  console.log(`Remaining admin dashboard layout passed at ${widths.join(" and ")}px.`);
+}
+
 async function run() {
   const profilePath = fs.mkdtempSync(path.join(os.tmpdir(), "admin-backup-chromium-"));
   const browser = spawn(
@@ -316,6 +417,7 @@ async function run() {
     if (!hasRecoveryControl) throw new Error("The admin dashboard did not show damaged-backup recovery.");
 
     await checkRecoveryLayout(pageConnection);
+    await checkRemainingDashboardLayout(pageConnection);
     await selectBackup(pageConnection, validBackupPath);
     await evaluate(pageConnection, "document.querySelector('#extract-raw-backup-form').requestSubmit()");
     await waitForStatus(pageConnection, /integrity check passed/i, "the successful extraction message");

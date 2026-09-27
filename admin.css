@@ -1395,6 +1395,33 @@ textarea {
 }
 
 @media (max-width: 600px) {
+  .admin-nav a,
+  .admin-top-actions .admin-view-site,
+  .admin-messages-heading-actions .admin-reset,
+  .admin-message-filter,
+  .admin-message-action,
+  .admin-form-actions .admin-button,
+  .admin-form-actions .admin-reset,
+  .admin-footer a {
+    min-height: 44px;
+  }
+
+  .admin-top-actions .admin-view-site,
+  .admin-message-action,
+  .admin-stat-card a,
+  .admin-dark-link,
+  .admin-preview-card a,
+  .admin-footer a {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .admin-stat-card a,
+  .admin-dark-link,
+  .admin-preview-card a {
+    min-height: 44px;
+  }
+
   .admin-inbox-recovery-actions,
   .admin-inbox-recovery-actions form,
   .admin-inbox-raw-extract form {
