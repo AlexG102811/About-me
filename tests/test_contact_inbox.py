@@ -296,6 +296,17 @@ class ContactInboxTests(unittest.TestCase):
         self.assertEqual(status, 401)
         self.assertEqual(payload["error"], "Authentication required.")
 
+        server.sessions[self.session_token] = server.time.time() - 1
+        status, payload = self.request(
+            "POST",
+            "/api/messages/extract-raw",
+            body=envelope,
+            authenticated=True,
+        )
+        self.assertEqual(status, 401)
+        self.assertEqual(payload["error"], "Authentication required.")
+
+        server.sessions[self.session_token] = server.time.time() + 60
         status, headers, body = self.request_raw(
             "POST",
             "/api/messages/extract-raw",
@@ -384,9 +395,11 @@ class ContactInboxTests(unittest.TestCase):
             valid_path.write_text(json.dumps(valid_envelope), encoding="utf-8")
             altered_path.write_text(json.dumps(altered_envelope), encoding="utf-8")
 
+            ready_path = temp_path / "session-expiration-ready"
+            continue_path = temp_path / "session-expiration-continue"
             browser_script = Path(__file__).with_name("admin_backup_browser.js")
             chromium = shutil.which("chromium") or "/repl/tools/bin/chromium"
-            result = subprocess.run(
+            process = subprocess.Popen(
                 [
                     shutil.which("node") or "node",
                     str(browser_script),
@@ -396,16 +409,39 @@ class ContactInboxTests(unittest.TestCase):
                     str(altered_path),
                     str(download_path),
                     chromium,
+                    str(ready_path),
+                    str(continue_path),
                 ],
-                check=False,
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
-                timeout=60,
             )
+            deadline = server.time.monotonic() + 60
+            try:
+                while not ready_path.exists() and process.poll() is None:
+                    if server.time.monotonic() >= deadline:
+                        self.fail("Browser did not reach the active dashboard before session expiration.")
+                    server.time.sleep(0.05)
+
+                if process.poll() is not None:
+                    stdout, stderr = process.communicate()
+                    self.fail(
+                        "Browser exited before the session-expiration check.\n"
+                        f"stdout:\n{stdout}\nstderr:\n{stderr}"
+                    )
+
+                server.sessions[self.session_token] = server.time.time() - 1
+                continue_path.write_text("expired", encoding="utf-8")
+                stdout, stderr = process.communicate(timeout=60)
+            finally:
+                if process.poll() is None:
+                    process.kill()
+                    process.communicate()
+
             self.assertEqual(
-                result.returncode,
+                process.returncode,
                 0,
-                msg=f"Browser extraction check failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+                msg=f"Browser extraction check failed.\nstdout:\n{stdout}\nstderr:\n{stderr}",
             )
 
             recovered_files = list(download_path.glob("contact-inbox-recovered*"))

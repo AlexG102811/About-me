@@ -5,11 +5,23 @@ const os = require("node:os");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 
-const [baseUrl, sessionToken, validBackupPath, alteredBackupPath, downloadPath, chromiumPath] =
+const [
+  baseUrl,
+  sessionToken,
+  validBackupPath,
+  alteredBackupPath,
+  downloadPath,
+  chromiumPath,
+  expiredSessionReadyPath,
+  expiredSessionContinuePath,
+] =
   process.argv.slice(2);
 
 if (![baseUrl, sessionToken, validBackupPath, alteredBackupPath, downloadPath, chromiumPath].every(Boolean)) {
   throw new Error("Expected the server URL, session token, backup files, download directory, and Chromium path.");
+}
+if (Boolean(expiredSessionReadyPath) !== Boolean(expiredSessionContinuePath)) {
+  throw new Error("Both session-expiration coordination paths must be provided together.");
 }
 
 class DevToolsConnection {
@@ -269,9 +281,14 @@ async function run() {
 
     pageConnection = await DevToolsConnection.connect(page.webSocketDebuggerUrl);
     const requests = [];
+    const extractionStatuses = [];
     pageConnection.on("Network.requestWillBeSent", ({ request }) => {
       const url = new URL(request.url);
       if (url.pathname.startsWith("/api/messages/")) requests.push(url.pathname);
+    });
+    pageConnection.on("Network.responseReceived", ({ response }) => {
+      const url = new URL(response.url);
+      if (url.pathname === "/api/messages/extract-raw") extractionStatuses.push(response.status);
     });
     await pageConnection.command("Page.enable");
     await pageConnection.command("Network.enable");
@@ -314,20 +331,51 @@ async function run() {
     await waitForStatus(pageConnection, /integrity/i, "the altered-digest rejection message");
     await delay(500);
 
+    if (expiredSessionReadyPath) {
+      await selectBackup(pageConnection, validBackupPath);
+      fs.writeFileSync(expiredSessionReadyPath, "dashboard remains open with a selected backup");
+      await waitFor(
+        () => fs.existsSync(expiredSessionContinuePath),
+        "the server-side session to expire",
+      );
+      await evaluate(pageConnection, "document.querySelector('#extract-raw-backup-form').requestSubmit()");
+      await waitFor(
+        () => evaluate(pageConnection, "location.pathname === '/login.html'"),
+        "the expired admin session to return to sign-in",
+      );
+      const expirationNotice = await evaluate(
+        pageConnection,
+        "new URL(location.href).searchParams.get('expired') === '1'",
+      );
+      if (!expirationNotice) throw new Error("The sign-in redirect did not identify the expired session.");
+      await delay(500);
+    }
+
     const extractionRequests = requests.filter((url) => url === "/api/messages/extract-raw").length;
     const restoreRequests = requests.filter((url) => url === "/api/messages/restore").length;
-    if (extractionRequests !== 2) {
-      throw new Error(`Expected two extraction requests, received ${extractionRequests}.`);
+    const expectedExtractionRequests = expiredSessionReadyPath ? 3 : 2;
+    if (extractionRequests !== expectedExtractionRequests) {
+      throw new Error(`Expected ${expectedExtractionRequests} extraction requests, received ${extractionRequests}.`);
     }
     if (restoreRequests !== 0) {
       throw new Error(`Extraction unexpectedly called the restore endpoint ${restoreRequests} time(s).`);
+    }
+    if (
+      expiredSessionReadyPath &&
+      (extractionStatuses.length !== 3 || extractionStatuses[2] !== 401)
+    ) {
+      throw new Error(`Expected the expired extraction request to return 401, received ${extractionStatuses}.`);
     }
     const downloads = fs.readdirSync(downloadPath).filter((name) => name.startsWith("contact-inbox-recovered"));
     if (downloads.length !== 1) {
       throw new Error(`Expected only the verified file to download, found: ${downloads.join(", ") || "none"}.`);
     }
 
-    console.log("Authenticated admin extraction passed: verified bytes downloaded, altered digest rejected, restore untouched.");
+    console.log(
+      expiredSessionReadyPath
+        ? "Authenticated extraction and expired-session rejection passed: no expired file download; restore untouched."
+        : "Authenticated admin extraction passed: verified bytes downloaded, altered digest rejected, restore untouched.",
+    );
   } finally {
     pageConnection?.close();
     browserConnection?.close();

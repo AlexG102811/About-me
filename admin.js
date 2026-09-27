@@ -504,6 +504,10 @@ extractRawBackupForm?.addEventListener("submit", async (event) => {
     });
     if (!response.ok) {
       const result = await response.json();
+      if (response.status === 401) {
+        window.location.assign("/login.html?next=%2Fadmin.html&expired=1");
+        return;
+      }
       throw new Error(result.error || "Unable to extract the damaged-inbox file.");
     }
 
