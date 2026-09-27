@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import hmac
 import html
 import json
@@ -34,6 +35,7 @@ MAX_LOGIN_ATTEMPTS = 5
 MESSAGE_WINDOW = 60 * 15
 MAX_MESSAGE_ATTEMPTS = 10
 MAX_CONTACT_BACKUP_BYTES = 25 * 1024 * 1024
+CONTACT_BACKUP_FORMAT_VERSION = 1
 SESSION_COOKIE = "admin_session"
 
 sessions: dict[str, float] = {}
@@ -222,6 +224,30 @@ def read_contact_backup() -> bytes:
         return serialized_messages.encode("utf-8")
 
 
+def contact_backup_integrity(messages: list) -> str:
+    canonical_messages = json.dumps(
+        messages,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(canonical_messages).hexdigest()
+
+
+def create_contact_backup(messages: list) -> bytes:
+    backup = {
+        "formatVersion": CONTACT_BACKUP_FORMAT_VERSION,
+        "messageCount": len(messages),
+        "integrity": {
+            "algorithm": "sha256",
+            "value": contact_backup_integrity(messages),
+        },
+        "messages": messages,
+    }
+    return json.dumps(backup, ensure_ascii=False, indent=2, allow_nan=False).encode("utf-8")
+
+
 def request_contact_backup(handler: SimpleHTTPRequestHandler) -> list[dict]:
     try:
         length = int(handler.headers.get("Content-Length", "0"))
@@ -231,11 +257,39 @@ def request_contact_backup(handler: SimpleHTTPRequestHandler) -> list[dict]:
         raise ValueError("Choose a non-empty backup file no larger than 25 MB.")
 
     try:
-        messages = json.loads(handler.rfile.read(length).decode("utf-8"))
+        backup = json.loads(handler.rfile.read(length).decode("utf-8"))
     except (ValueError, RecursionError) as error:
         raise ValueError("The backup file must contain valid JSON.") from error
-    if not isinstance(messages, list):
+
+    if isinstance(backup, dict):
+        if type(backup.get("formatVersion")) is not int or backup["formatVersion"] != CONTACT_BACKUP_FORMAT_VERSION:
+            raise ValueError("The backup file uses an unsupported format version.")
+        messages = backup.get("messages")
+        message_count = backup.get("messageCount")
+        integrity = backup.get("integrity")
+        if not isinstance(messages, list):
+            raise ValueError("The backup file must contain a list of messages.")
+        if type(message_count) is not int or message_count != len(messages):
+            raise ValueError("The backup integrity check failed: message count does not match.")
+        if (
+            not isinstance(integrity, dict)
+            or integrity.get("algorithm") != "sha256"
+            or not isinstance(integrity.get("value"), str)
+            or not re.fullmatch(r"[0-9a-f]{64}", integrity["value"])
+        ):
+            raise ValueError("The backup integrity information is missing or unsupported.")
+        try:
+            expected_integrity = contact_backup_integrity(messages)
+        except (TypeError, ValueError, RecursionError) as error:
+            raise ValueError("The backup integrity information could not be checked.") from error
+        if not hmac.compare_digest(integrity["value"], expected_integrity):
+            raise ValueError("The backup integrity check failed. The file may have been changed or truncated.")
+    elif isinstance(backup, list):
+        # Backups created before versioned integrity metadata were introduced.
+        messages = backup
+    else:
         raise ValueError("The backup file must contain a list of messages.")
+
     try:
         return [normalize_message(message) for message in messages]
     except RuntimeError as error:
@@ -335,6 +389,14 @@ class SiteHandler(SimpleHTTPRequestHandler):
                     HTTPStatus.SERVICE_UNAVAILABLE,
                 )
                 return
+
+            try:
+                stored_messages = json.loads(backup.decode("utf-8"))
+                if isinstance(stored_messages, list):
+                    backup = create_contact_backup(stored_messages)
+            except (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError, RecursionError):
+                # Keep malformed stored content downloadable byte-for-byte for recovery.
+                pass
 
             filename = f"contact-inbox-backup-{datetime.now(timezone.utc):%Y%m%d-%H%M%SZ}.json"
             self.send_response(HTTPStatus.OK)

@@ -229,7 +229,17 @@ class ContactInboxTests(unittest.TestCase):
             authenticated=True,
         )
         self.assertEqual(status, 200)
-        self.assertEqual(body, stored_content)
+        backup = json.loads(body.decode("utf-8"))
+        self.assertEqual(backup["formatVersion"], server.CONTACT_BACKUP_FORMAT_VERSION)
+        self.assertEqual(backup["messageCount"], 1)
+        self.assertEqual(backup["messages"], json.loads(stored_content))
+        self.assertEqual(
+            backup["integrity"],
+            {
+                "algorithm": "sha256",
+                "value": server.contact_backup_integrity(backup["messages"]),
+            },
+        )
         self.assertIn("attachment; filename=\"contact-inbox-backup-", headers["content-disposition"])
         self.assertEqual(headers["cache-control"], "no-store")
 
@@ -242,6 +252,36 @@ class ContactInboxTests(unittest.TestCase):
         )
         self.assertEqual(status, 200)
         self.assertEqual(body, b"{")
+
+    def test_versioned_backup_download_passes_preview_and_restore(self) -> None:
+        messages = [self.record(id="downloaded")]
+        self.storage.contents = json.dumps(messages, separators=(",", ":"))
+        status, _headers, body = self.request_raw(
+            "GET",
+            "/api/messages/backup",
+            authenticated=True,
+        )
+        self.assertEqual(status, 200)
+
+        backup_content = body.decode("utf-8")
+        status, preview = self.request(
+            "POST",
+            "/api/messages/preview",
+            body=backup_content,
+            authenticated=True,
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(preview["count"], 1)
+
+        status, restored = self.request(
+            "POST",
+            "/api/messages/restore",
+            body=backup_content,
+            authenticated=True,
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(restored, {"ok": True, "count": 1})
+        self.assertEqual(json.loads(self.storage.contents or "null"), messages)
 
     def test_backup_preview_requires_authentication_and_does_not_change_inbox(self) -> None:
         existing_inbox = json.dumps([self.record(id="existing")], separators=(",", ":"))
@@ -308,6 +348,39 @@ class ContactInboxTests(unittest.TestCase):
         self.assertEqual(status, 400)
         self.assertIn("25 MB", payload["error"])
         self.assertEqual(self.storage.contents, existing_inbox)
+
+    def test_altered_and_truncated_versioned_backups_are_rejected(self) -> None:
+        existing_inbox = json.dumps([self.record(id="existing")], separators=(",", ":"))
+        messages = [
+            self.record(id="older", name="Older Sender"),
+            self.record(id="newer", name="Newer Sender"),
+        ]
+        self.storage.contents = existing_inbox
+        backup = json.loads(server.create_contact_backup(messages))
+
+        altered_backup = json.loads(json.dumps(backup))
+        altered_backup["messages"][0]["message"] = "Edited after download"
+        truncated_backup = json.loads(json.dumps(backup))
+        truncated_backup["messages"].pop(0)
+        invalid_integrity_backup = json.loads(json.dumps(backup))
+        invalid_integrity_backup["integrity"]["value"] = "not-a-digest"
+
+        for action in ("/api/messages/preview", "/api/messages/restore"):
+            for label, damaged_backup in (
+                ("altered", altered_backup),
+                ("truncated", truncated_backup),
+                ("invalid integrity value", invalid_integrity_backup),
+            ):
+                with self.subTest(action=action, damage=label):
+                    status, payload = self.request(
+                        "POST",
+                        action,
+                        body=json.dumps(damaged_backup),
+                        authenticated=True,
+                    )
+                    self.assertEqual(status, 400)
+                    self.assertIn("integrity", payload["error"].lower())
+                    self.assertEqual(self.storage.contents, existing_inbox)
 
     def test_restore_requires_authentication(self) -> None:
         original_contents = json.dumps([self.record()])
