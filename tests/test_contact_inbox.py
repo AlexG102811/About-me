@@ -81,6 +81,22 @@ class ContactInboxTests(unittest.TestCase):
         body: str | None = None,
         authenticated: bool = False,
     ) -> tuple[int, dict]:
+        status, _headers, response_body = self.request_raw(
+            method,
+            path,
+            body=body,
+            authenticated=authenticated,
+        )
+        return status, json.loads(response_body.decode("utf-8"))
+
+    def request_raw(
+        self,
+        method: str,
+        path: str,
+        *,
+        body: str | None = None,
+        authenticated: bool = False,
+    ) -> tuple[int, dict[str, str], bytes]:
         headers = {"Accept": "application/json"}
         if body is not None:
             headers["Content-Type"] = "application/json"
@@ -91,7 +107,9 @@ class ContactInboxTests(unittest.TestCase):
         try:
             connection.request(method, path, body=body, headers=headers)
             response = connection.getresponse()
-            return response.status, json.loads(response.read().decode("utf-8"))
+            response_body = response.read()
+            response_headers = {name.lower(): value for name, value in response.getheaders()}
+            return response.status, response_headers, response_body
         finally:
             connection.close()
 
@@ -196,6 +214,126 @@ class ContactInboxTests(unittest.TestCase):
         )
         self.assertEqual(status, 401)
         self.assertEqual(payload["error"], "Authentication required.")
+
+    def test_backup_requires_authentication_and_exports_stored_content(self) -> None:
+        self.storage.contents = json.dumps([self.record()], indent=2)
+        stored_content = self.storage.contents.encode("utf-8")
+
+        status, payload = self.request("GET", "/api/messages/backup")
+        self.assertEqual(status, 401)
+        self.assertEqual(payload["error"], "Authentication required.")
+
+        status, headers, body = self.request_raw(
+            "GET",
+            "/api/messages/backup",
+            authenticated=True,
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(body, stored_content)
+        self.assertIn("attachment; filename=\"contact-inbox-backup-", headers["content-disposition"])
+        self.assertEqual(headers["cache-control"], "no-store")
+
+        # Export must remain available even when the stored inbox itself is malformed.
+        self.storage.contents = "{"
+        status, _headers, body = self.request_raw(
+            "GET",
+            "/api/messages/backup",
+            authenticated=True,
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(body, b"{")
+
+    def test_restore_requires_authentication(self) -> None:
+        original_contents = json.dumps([self.record()])
+        self.storage.contents = original_contents
+
+        status, payload = self.request(
+            "POST",
+            "/api/messages/restore",
+            body=json.dumps([self.record(id="replacement")]),
+        )
+
+        self.assertEqual(status, 401)
+        self.assertEqual(payload["error"], "Authentication required.")
+        self.assertEqual(self.storage.contents, original_contents)
+
+    def test_invalid_restore_data_does_not_overwrite_existing_inbox(self) -> None:
+        original_contents = json.dumps([self.record()], separators=(",", ":"))
+        self.storage.contents = original_contents
+        invalid_backups = (
+            json.dumps([self.record(id="valid-first"), {"id": "incomplete"}]),
+            json.dumps({"messages": [self.record()]}),
+            "{",
+            json.dumps([self.record(status=[])]),
+        )
+
+        for backup in invalid_backups:
+            with self.subTest(backup=backup):
+                status, payload = self.request(
+                    "POST",
+                    "/api/messages/restore",
+                    body=backup,
+                    authenticated=True,
+                )
+                self.assertEqual(status, 400)
+                self.assertIn("backup", payload["error"].lower())
+                self.assertEqual(self.storage.contents, original_contents)
+
+    def test_restore_validates_and_normalizes_before_saving(self) -> None:
+        self.storage.contents = "{"
+        legacy_backup = [
+            {
+                "id": "legacy-restore",
+                "name": "Avery",
+                "email": "avery@example.com",
+                "message": "Recovered note",
+                "receivedAt": "2025-12-01T09:00:00+00:00",
+                "reason": "Old topic",
+                "replied": True,
+            }
+        ]
+
+        status, payload = self.request(
+            "POST",
+            "/api/messages/restore",
+            body=json.dumps(legacy_backup),
+            authenticated=True,
+        )
+
+        self.assertEqual(status, 200)
+        self.assertEqual(payload, {"ok": True, "count": 1})
+        self.assertEqual(
+            json.loads(self.storage.contents or "null"),
+            [
+                {
+                    "id": "legacy-restore",
+                    "name": "Avery",
+                    "email": "avery@example.com",
+                    "reason": "Other",
+                    "message": "Recovered note",
+                    "submittedAt": "2025-12-01T09:00:00+00:00",
+                    "read": False,
+                    "status": "replied",
+                    "repliedAt": None,
+                }
+            ],
+        )
+
+    def test_restore_storage_failure_preserves_existing_inbox(self) -> None:
+        original_contents = json.dumps([self.record()])
+        self.storage.contents = original_contents
+        self.storage.upload_error = RuntimeError("storage offline")
+
+        status, payload = self.request(
+            "POST",
+            "/api/messages/restore",
+            body=json.dumps([self.record(id="replacement")]),
+            authenticated=True,
+        )
+
+        self.assertEqual(status, 503)
+        self.assertIn("unavailable", payload["error"].lower())
+        self.assertEqual(self.storage.contents, original_contents)
 
     def test_storage_outages_return_errors_and_never_report_delivery(self) -> None:
         self.storage.download_error = RuntimeError("storage offline")

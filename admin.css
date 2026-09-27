@@ -555,6 +555,70 @@ textarea {
   font-weight: 500;
 }
 
+.admin-inbox-recovery {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px 24px;
+  margin: 18px 0 28px;
+  padding: 19px 21px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.admin-inbox-recovery h3 {
+  margin: 6px 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.admin-inbox-recovery-note {
+  max-width: 510px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.admin-inbox-recovery-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.admin-inbox-recovery-actions form {
+  display: flex;
+  align-items: flex-end;
+  gap: 15px;
+}
+
+.admin-inbox-file-label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.admin-inbox-file-label input {
+  max-width: 210px;
+  color: var(--ink);
+  font: 11px var(--sans);
+}
+
+.admin-inbox-recovery-status {
+  grid-column: 1 / -1;
+  min-height: 14px;
+  margin: 0;
+  color: var(--blue);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.admin-inbox-recovery button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
 .admin-messages-list {
   border-top: 1px solid var(--line);
 }
@@ -1207,6 +1271,14 @@ textarea {
     margin-bottom: 18px;
   }
 
+  .admin-inbox-recovery {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-inbox-recovery-status {
+    grid-column: auto;
+  }
+
   .admin-stat-grid,
   .admin-overview-grid,
   .admin-profile-grid {
@@ -1241,6 +1313,12 @@ textarea {
   }
 
   .admin-form-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-inbox-recovery-actions,
+  .admin-inbox-recovery-actions form {
     align-items: flex-start;
     flex-direction: column;
   }

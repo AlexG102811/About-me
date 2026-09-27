@@ -33,6 +33,7 @@ LOGIN_WINDOW = 60 * 5
 MAX_LOGIN_ATTEMPTS = 5
 MESSAGE_WINDOW = 60 * 15
 MAX_MESSAGE_ATTEMPTS = 10
+MAX_CONTACT_BACKUP_BYTES = 25 * 1024 * 1024
 SESSION_COOKIE = "admin_session"
 
 sessions: dict[str, float] = {}
@@ -137,11 +138,11 @@ def normalize_message(message: dict) -> dict:
     status = message.get("status", "new")
     if message.get("replied") is True:
         status = "replied"
-    if status not in {"new", "replied"}:
+    if not isinstance(status, str) or status not in {"new", "replied"}:
         raise RuntimeError("The contact store contains an invalid reply status.")
 
     reason = message.get("reason") or "General"
-    if reason not in {"General", "Baseball", "Gaming", "School", "Other"}:
+    if not isinstance(reason, str) or reason not in {"General", "Baseball", "Gaming", "School", "Other"}:
         reason = "Other"
 
     return {
@@ -202,6 +203,43 @@ def save_messages(messages: list[dict]) -> None:
         )
     except Exception as error:
         raise ContactStorageUnavailable("Contact storage is unavailable.") from error
+
+
+def read_contact_backup() -> bytes:
+    """Read the inbox as-is so even malformed stored content can be preserved."""
+    with contact_storage_lock:
+        try:
+            serialized_messages = Client().download_as_text(MESSAGES_OBJECT_NAME)
+        except ObjectNotFoundError:
+            if MESSAGES_PATH.exists():
+                try:
+                    return MESSAGES_PATH.read_bytes()
+                except OSError as error:
+                    raise ContactStorageUnavailable("Contact storage is unavailable.") from error
+            return b"[]"
+        except Exception as error:
+            raise ContactStorageUnavailable("Contact storage is unavailable.") from error
+        return serialized_messages.encode("utf-8")
+
+
+def request_contact_backup(handler: SimpleHTTPRequestHandler) -> list[dict]:
+    try:
+        length = int(handler.headers.get("Content-Length", "0"))
+    except ValueError as error:
+        raise ValueError("The backup file size is invalid.") from error
+    if length <= 0 or length > MAX_CONTACT_BACKUP_BYTES:
+        raise ValueError("Choose a non-empty backup file under 25 MB.")
+
+    try:
+        messages = json.loads(handler.rfile.read(length).decode("utf-8"))
+    except (ValueError, RecursionError) as error:
+        raise ValueError("The backup file must contain valid JSON.") from error
+    if not isinstance(messages, list):
+        raise ValueError("The backup file must contain a list of messages.")
+    try:
+        return [normalize_message(message) for message in messages]
+    except RuntimeError as error:
+        raise ValueError(f"The backup contains invalid messages: {error}") from error
 
 
 def message_response(handler: SimpleHTTPRequestHandler, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
@@ -266,6 +304,30 @@ class SiteHandler(SimpleHTTPRequestHandler):
             self.logout()
             return
 
+        if path == "/api/messages/backup":
+            if not has_valid_session(self):
+                message_response(self, {"error": "Authentication required."}, HTTPStatus.UNAUTHORIZED)
+                return
+            try:
+                backup = read_contact_backup()
+            except ContactStorageUnavailable:
+                message_response(
+                    self,
+                    {"error": "The contact inbox is unavailable. Configure Replit App Storage and try again."},
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                )
+                return
+
+            filename = f"contact-inbox-backup-{datetime.now(timezone.utc):%Y%m%d-%H%M%SZ}.json"
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+            self.send_header("Content-Length", str(len(backup)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(backup)
+            return
+
         if path == "/api/messages":
             if not has_valid_session(self):
                 message_response(self, {"error": "Authentication required."}, HTTPStatus.UNAUTHORIZED)
@@ -293,6 +355,28 @@ class SiteHandler(SimpleHTTPRequestHandler):
 
         if path == "/messages":
             self.receive_message()
+            return
+
+        if path == "/api/messages/restore":
+            if not has_valid_session(self):
+                message_response(self, {"error": "Authentication required."}, HTTPStatus.UNAUTHORIZED)
+                return
+            try:
+                replacement = request_contact_backup(self)
+            except ValueError as error:
+                message_response(self, {"error": str(error)}, HTTPStatus.BAD_REQUEST)
+                return
+            try:
+                with contact_storage_lock:
+                    save_messages(replacement)
+            except ContactStorageUnavailable:
+                message_response(
+                    self,
+                    {"error": "The contact inbox is unavailable. Configure Replit App Storage and try again."},
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                )
+                return
+            message_response(self, {"ok": True, "count": len(replacement)})
             return
 
         if path.startswith("/api/messages/") and path.endswith(("/read", "/reply")):

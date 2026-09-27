@@ -9,7 +9,7 @@
     />
     <title>Admin dashboard — Alex Gomez Ewert</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="admin.css?v=dashboard-inbox-2" />
+    <link rel="stylesheet" href="admin.css?v=contact-recovery-1" />
   </head>
   <body>
     <div class="admin-shell">
@@ -119,6 +119,32 @@
             <span><strong id="admin-new-count">0</strong> need a reply</span>
             <span><strong id="admin-replied-count">0</strong> replied</span>
           </div>
+          <section class="admin-inbox-recovery" aria-labelledby="admin-inbox-recovery-title">
+            <div>
+              <p class="admin-section-label"><span>Inbox tools</span></p>
+              <h3 id="admin-inbox-recovery-title">Back up or restore messages.</h3>
+              <p class="admin-inbox-recovery-note">
+                Restore replaces the entire inbox. Only a complete, valid JSON backup will be accepted.
+              </p>
+            </div>
+            <div class="admin-inbox-recovery-actions">
+              <button class="admin-reset" id="download-message-backup" type="button">Download inbox backup ↓</button>
+              <form id="restore-message-backup-form">
+                <label class="admin-inbox-file-label" for="restore-message-backup-file">
+                  Choose backup file
+                  <input
+                    id="restore-message-backup-file"
+                    name="backup"
+                    type="file"
+                    accept=".json,application/json"
+                    required
+                  />
+                </label>
+                <button class="admin-reset" id="restore-message-backup" type="submit">Restore inbox ↗</button>
+              </form>
+            </div>
+            <p class="admin-inbox-recovery-status" id="admin-inbox-recovery-status" role="status" aria-live="polite"></p>
+          </section>
           <div class="admin-message-insights">
             <div class="admin-message-filters" role="group" aria-label="Filter messages">
               <button class="admin-message-filter is-active" type="button" data-message-filter="all" aria-pressed="true">All</button>
@@ -266,6 +292,6 @@
       </main>
     </div>
 
-    <script src="admin.js?v=message-management-1"></script>
+    <script src="admin.js?v=contact-recovery-1"></script>
   </body>
 </html>

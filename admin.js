@@ -143,6 +143,11 @@ const newCount = document.querySelector("#admin-new-count");
 const repliedCount = document.querySelector("#admin-replied-count");
 const messageBadge = document.querySelector("#admin-message-badge");
 const refreshMessages = document.querySelector("#refresh-messages");
+const downloadMessageBackup = document.querySelector("#download-message-backup");
+const restoreMessageBackupForm = document.querySelector("#restore-message-backup-form");
+const restoreMessageBackupFile = document.querySelector("#restore-message-backup-file");
+const restoreMessageBackupButton = document.querySelector("#restore-message-backup");
+const inboxRecoveryStatus = document.querySelector("#admin-inbox-recovery-status");
 const reasonChart = document.querySelector("#admin-reason-chart");
 const reasonEmpty = document.querySelector("#admin-reason-empty");
 const recentActivity = document.querySelector("#admin-recent-activity");
@@ -413,4 +418,67 @@ const loadMessages = async () => {
 };
 
 refreshMessages?.addEventListener("click", loadMessages);
+
+downloadMessageBackup?.addEventListener("click", async () => {
+  downloadMessageBackup.disabled = true;
+  if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "Preparing inbox backup…";
+  try {
+    const response = await fetch("/api/messages/backup", {
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Unable to download the inbox backup.");
+    }
+
+    const backup = await response.blob();
+    const downloadUrl = URL.createObjectURL(backup);
+    const link = document.createElement("a");
+    const disposition = response.headers.get("Content-Disposition") || "";
+    const filename = disposition.match(/filename="([^"]+)"/)?.[1] || "contact-inbox-backup.json";
+    link.href = downloadUrl;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+    if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "Inbox backup downloaded.";
+  } catch (error) {
+    if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = error.message || "Unable to download the inbox backup.";
+  } finally {
+    downloadMessageBackup.disabled = false;
+  }
+});
+
+restoreMessageBackupForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const backupFile = restoreMessageBackupFile?.files?.[0];
+  if (!backupFile) {
+    if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "Choose a JSON backup file first.";
+    return;
+  }
+  if (!window.confirm("Restore this backup and replace every message currently in the inbox?")) return;
+
+  restoreMessageBackupButton.disabled = true;
+  if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "Validating backup…";
+  try {
+    const response = await fetch("/api/messages/restore", {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: await backupFile.text(),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Unable to restore the inbox.");
+    if (inboxRecoveryStatus) {
+      inboxRecoveryStatus.textContent = `Restored ${result.count} message${result.count === 1 ? "" : "s"}.`;
+    }
+    restoreMessageBackupForm.reset();
+    await loadMessages();
+  } catch (error) {
+    if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = error.message || "Unable to restore the inbox.";
+  } finally {
+    restoreMessageBackupButton.disabled = false;
+  }
+});
+
 loadMessages();
