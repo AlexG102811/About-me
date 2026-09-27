@@ -152,9 +152,11 @@ const restoreMessageBackupPreview = document.querySelector("#restore-message-bac
 const restoreMessageBackupSummary = document.querySelector("#restore-message-backup-summary");
 const restoreMessageBackupSenders = document.querySelector("#restore-message-backup-senders");
 const restoreMessageBackupSenderList = document.querySelector("#restore-message-backup-sender-list");
+const restoreMessageBackupSelection = document.querySelector("#restore-message-backup-selection");
 const extractRawBackupForm = document.querySelector("#extract-raw-backup-form");
 const extractRawBackupFile = document.querySelector("#extract-raw-backup-file");
 const extractRawBackupButton = document.querySelector("#extract-raw-backup");
+const extractRawBackupSelection = document.querySelector("#extract-raw-backup-selection");
 const reasonChart = document.querySelector("#admin-reason-chart");
 const reasonEmpty = document.querySelector("#admin-reason-empty");
 const recentActivity = document.querySelector("#admin-recent-activity");
@@ -166,6 +168,25 @@ let activeMessageFilter = "all";
 let backupPreviewSequence = 0;
 let previewedBackupFile = null;
 const maxContactBackupBytes = 25 * 1024 * 1024;
+
+const formatBackupFileSize = (bytes) => {
+  if (bytes < 1024) return `${bytes} byte${bytes === 1 ? "" : "s"}`;
+  const units = ["KB", "MB"];
+  let size = bytes / 1024;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+  return `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(size)} ${units[unitIndex]}`;
+};
+
+const renderBackupFileSelection = (element, file, emptyMessage, label) => {
+  if (!element) return;
+  element.textContent = file
+    ? `${label}: ${file.name} (${formatBackupFileSize(file.size)}).`
+    : emptyMessage;
+};
 
 const messageInitials = (name) => {
   const initials = name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("");
@@ -471,6 +492,12 @@ downloadMessageBackup?.addEventListener("click", async () => {
 
 extractRawBackupFile?.addEventListener("change", () => {
   const backupFile = extractRawBackupFile.files?.[0];
+  renderBackupFileSelection(
+    extractRawBackupSelection,
+    backupFile,
+    "No damaged-inbox export selected.",
+    "Selected damaged-inbox export",
+  );
   extractRawBackupButton.disabled = !backupFile || backupFile.size > maxContactBackupBytes;
   if (backupFile && backupFile.size > maxContactBackupBytes && inboxRecoveryStatus) {
     inboxRecoveryStatus.textContent = "This damaged-inbox export is larger than 25 MB and cannot be checked.";
@@ -537,6 +564,12 @@ extractRawBackupForm?.addEventListener("submit", async (event) => {
 restoreMessageBackupFile?.addEventListener("change", async () => {
   const previewSequence = ++backupPreviewSequence;
   const backupFile = restoreMessageBackupFile.files?.[0];
+  renderBackupFileSelection(
+    restoreMessageBackupSelection,
+    backupFile,
+    "No inbox backup selected.",
+    "Selected inbox backup",
+  );
   clearBackupPreview();
   if (!backupFile) {
     if (inboxRecoveryStatus) inboxRecoveryStatus.textContent = "";
@@ -617,6 +650,7 @@ restoreMessageBackupForm?.addEventListener("submit", async (event) => {
       inboxRecoveryStatus.textContent = `Restored ${result.count} message${result.count === 1 ? "" : "s"}.`;
     }
     restoreMessageBackupForm.reset();
+    renderBackupFileSelection(restoreMessageBackupSelection, null, "No inbox backup selected.");
     backupPreviewSequence += 1;
     clearBackupPreview();
     await loadMessages();

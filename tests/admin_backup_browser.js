@@ -10,6 +10,8 @@ const [
   sessionToken,
   validBackupPath,
   alteredBackupPath,
+  restoreBackupPath,
+  replacementRestoreBackupPath,
   downloadPath,
   chromiumPath,
   expiredSessionReadyPath,
@@ -17,7 +19,18 @@ const [
 ] =
   process.argv.slice(2);
 
-if (![baseUrl, sessionToken, validBackupPath, alteredBackupPath, downloadPath, chromiumPath].every(Boolean)) {
+if (
+  ![
+    baseUrl,
+    sessionToken,
+    validBackupPath,
+    alteredBackupPath,
+    restoreBackupPath,
+    replacementRestoreBackupPath,
+    downloadPath,
+    chromiumPath,
+  ].every(Boolean)
+) {
   throw new Error("Expected the server URL, session token, backup files, download directory, and Chromium path.");
 }
 if (Boolean(expiredSessionReadyPath) !== Boolean(expiredSessionContinuePath)) {
@@ -113,18 +126,60 @@ async function evaluate(connection, expression) {
   return result.result.value;
 }
 
-async function selectBackup(connection, backupPath) {
+async function selectBackup(connection, selector, backupPath) {
   const { root } = await connection.command("DOM.getDocument");
   const { nodeId } = await connection.command("DOM.querySelector", {
     nodeId: root.nodeId,
-    selector: "#extract-raw-backup-file",
+    selector,
   });
-  if (!nodeId) throw new Error("The damaged-backup file picker was not present in the admin page.");
+  if (!nodeId) throw new Error(`The ${selector} file picker was not present in the admin page.`);
   await connection.command("DOM.setFileInputFiles", { files: [backupPath], nodeId });
+}
+
+function expectedFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} byte${bytes === 1 ? "" : "s"}`;
+  const units = ["KB", "MB"];
+  let size = bytes / 1024;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+  return `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(size)} ${units[unitIndex]}`;
+}
+
+async function assertSelectedFile(connection, selector, summarySelector, filePath, description) {
+  const expected = `${path.basename(filePath)} (${expectedFileSize(fs.statSync(filePath).size)})`;
   await waitFor(
-    () => evaluate(connection, "document.querySelector('#extract-raw-backup').disabled === false"),
-    "the selected backup to be ready",
+    () => evaluate(
+      connection,
+      `document.querySelector(${JSON.stringify(summarySelector)})?.textContent.includes(${JSON.stringify(expected)})`,
+    ),
+    `${description} to show the complete filename and size`,
   );
+  const result = await evaluate(connection, `(() => {
+    const summary = document.querySelector(${JSON.stringify(summarySelector)});
+    return {
+      text: summary.textContent,
+      role: summary.getAttribute("role"),
+      live: summary.getAttribute("aria-live"),
+      atomic: summary.getAttribute("aria-atomic"),
+      scrollWidth: summary.scrollWidth,
+      clientWidth: summary.clientWidth,
+      overflowWrap: getComputedStyle(summary).overflowWrap,
+    };
+  })()`);
+  if (
+    !result.text.includes(path.basename(filePath)) ||
+    result.role !== "status" ||
+    result.live !== "polite" ||
+    result.atomic !== "true"
+  ) {
+    throw new Error(`${description} selection was not fully and accessibly identified: ${JSON.stringify(result)}.`);
+  }
+  if (result.scrollWidth > result.clientWidth + 1 || result.overflowWrap !== "anywhere") {
+    throw new Error(`${description} filename is not readable within the narrow layout: ${JSON.stringify(result)}.`);
+  }
 }
 
 async function waitForStatus(connection, pattern, description) {
@@ -418,7 +473,49 @@ async function run() {
 
     await checkRecoveryLayout(pageConnection);
     await checkRemainingDashboardLayout(pageConnection);
-    await selectBackup(pageConnection, validBackupPath);
+    await pageConnection.command("Emulation.setDeviceMetricsOverride", {
+      width: 320,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: true,
+    });
+    await selectBackup(pageConnection, "#restore-message-backup-file", restoreBackupPath);
+    await assertSelectedFile(
+      pageConnection,
+      "#restore-message-backup-file",
+      "#restore-message-backup-selection",
+      restoreBackupPath,
+      "Restore",
+    );
+    await waitFor(
+      () => evaluate(pageConnection, "document.querySelector('#restore-message-backup').disabled === false"),
+      "the selected restore backup to be previewed",
+    );
+    await selectBackup(pageConnection, "#restore-message-backup-file", replacementRestoreBackupPath);
+    await assertSelectedFile(
+      pageConnection,
+      "#restore-message-backup-file",
+      "#restore-message-backup-selection",
+      replacementRestoreBackupPath,
+      "Replacement restore",
+    );
+    await waitFor(
+      () => evaluate(pageConnection, "document.querySelector('#restore-message-backup').disabled === false"),
+      "the replacement restore backup to be previewed",
+    );
+
+    await selectBackup(pageConnection, "#extract-raw-backup-file", validBackupPath);
+    await assertSelectedFile(
+      pageConnection,
+      "#extract-raw-backup-file",
+      "#extract-raw-backup-selection",
+      validBackupPath,
+      "Damaged-export extraction",
+    );
+    await waitFor(
+      () => evaluate(pageConnection, "document.querySelector('#extract-raw-backup').disabled === false"),
+      "the selected damaged export to be ready",
+    );
     await evaluate(pageConnection, "document.querySelector('#extract-raw-backup-form').requestSubmit()");
     await waitForStatus(pageConnection, /integrity check passed/i, "the successful extraction message");
     const recoveredPath = path.join(downloadPath, "contact-inbox-recovered.bin");
@@ -428,13 +525,31 @@ async function run() {
       "the recovered-file download to finish",
     );
 
-    await selectBackup(pageConnection, alteredBackupPath);
+    await selectBackup(pageConnection, "#extract-raw-backup-file", alteredBackupPath);
+    await assertSelectedFile(
+      pageConnection,
+      "#extract-raw-backup-file",
+      "#extract-raw-backup-selection",
+      alteredBackupPath,
+      "Replacement damaged-export extraction",
+    );
+    await waitFor(
+      () => evaluate(pageConnection, "document.querySelector('#extract-raw-backup').disabled === false"),
+      "the replacement damaged export to be ready",
+    );
     await evaluate(pageConnection, "document.querySelector('#extract-raw-backup-form').requestSubmit()");
     await waitForStatus(pageConnection, /integrity/i, "the altered-digest rejection message");
     await delay(500);
 
     if (expiredSessionReadyPath) {
-      await selectBackup(pageConnection, validBackupPath);
+      await selectBackup(pageConnection, "#extract-raw-backup-file", validBackupPath);
+      await assertSelectedFile(
+        pageConnection,
+        "#extract-raw-backup-file",
+        "#extract-raw-backup-selection",
+        validBackupPath,
+        "Expired-session damaged-export extraction",
+      );
       fs.writeFileSync(expiredSessionReadyPath, "dashboard remains open with a selected backup");
       await waitFor(
         () => fs.existsSync(expiredSessionContinuePath),

@@ -385,15 +385,26 @@ class ContactInboxTests(unittest.TestCase):
         valid_envelope = json.loads(server.create_contact_raw_backup(original_bytes))
         altered_envelope = json.loads(json.dumps(valid_envelope))
         altered_envelope["integrity"]["value"] = "0" * 64
+        restore_backup = json.loads(server.create_contact_backup([self.record(id="browser-restore")]))
+        replacement_restore_backup = json.loads(
+            server.create_contact_backup([
+                self.record(id="browser-restore-replacement"),
+                self.record(id="browser-restore-replacement-2"),
+            ])
+        )
 
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
-            valid_path = temp_path / "damaged-inbox.json"
-            altered_path = temp_path / "altered-damaged-inbox.json"
+            valid_path = temp_path / f"damaged-inbox-{('verified-' * 8)}selection.json"
+            altered_path = temp_path / f"altered-damaged-inbox-{('replacement-' * 6)}selection.json"
+            restore_path = temp_path / f"contact-inbox-{('restore-' * 8)}backup.json"
+            replacement_restore_path = temp_path / f"contact-inbox-{('replacement-' * 6)}backup.json"
             download_path = temp_path / "downloads"
             download_path.mkdir()
             valid_path.write_text(json.dumps(valid_envelope), encoding="utf-8")
             altered_path.write_text(json.dumps(altered_envelope), encoding="utf-8")
+            restore_path.write_text(json.dumps(restore_backup), encoding="utf-8")
+            replacement_restore_path.write_text(json.dumps(replacement_restore_backup), encoding="utf-8")
 
             ready_path = temp_path / "session-expiration-ready"
             continue_path = temp_path / "session-expiration-continue"
@@ -407,6 +418,8 @@ class ContactInboxTests(unittest.TestCase):
                     self.session_token,
                     str(valid_path),
                     str(altered_path),
+                    str(restore_path),
+                    str(replacement_restore_path),
                     str(download_path),
                     chromium,
                     str(ready_path),

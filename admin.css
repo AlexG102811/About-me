@@ -616,6 +616,28 @@ textarea {
   line-height: 1.5;
 }
 
+.admin-inbox-selected-file {
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 9px 11px;
+  border-left: 2px solid var(--blue);
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.035);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.admin-inbox-recovery > .admin-inbox-selected-file {
+  grid-column: 1 / -1;
+}
+
+.admin-inbox-raw-extract .admin-inbox-selected-file {
+  margin-top: 10px;
+}
+
 .admin-inbox-raw-extract form {
   display: flex;
   align-items: flex-end;

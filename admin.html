@@ -9,7 +9,7 @@
     />
     <title>Admin dashboard — Alex Gomez Ewert</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="admin.css?v=admin-mobile-1" />
+    <link rel="stylesheet" href="admin.css?v=backup-selection-1" />
   </head>
   <body>
     <div class="admin-shell">
@@ -143,12 +143,18 @@
                 <button class="admin-reset" id="restore-message-backup" type="submit" disabled>Restore inbox ↗</button>
               </form>
             </div>
+            <p class="admin-inbox-selected-file" id="restore-message-backup-selection" role="status" aria-live="polite" aria-atomic="true">
+              No inbox backup selected.
+            </p>
             <div class="admin-inbox-raw-extract">
               <div>
                 <strong>Recover the original file from a damaged export</strong>
                 <p>
                   Choose a damaged-inbox export to verify it and download the preserved bytes as a separate file.
                   This does not restore or change any messages.
+                </p>
+                <p class="admin-inbox-selected-file" id="extract-raw-backup-selection" role="status" aria-live="polite" aria-atomic="true">
+                  No damaged-inbox export selected.
                 </p>
               </div>
               <form id="extract-raw-backup-form">
@@ -323,6 +329,6 @@
       </main>
     </div>
 
-    <script src="admin.js?v=contact-recovery-3"></script>
+    <script src="admin.js?v=backup-selection-1"></script>
   </body>
 </html>
