@@ -341,6 +341,7 @@ const renderMessages = (messages) => {
     avatar.className = "admin-message-avatar";
     avatar.textContent = messageInitials(message.name);
     const senderDetails = document.createElement("div");
+    senderDetails.className = "admin-message-sender-details";
     const name = document.createElement("strong");
     name.textContent = message.name;
     const email = document.createElement("a");

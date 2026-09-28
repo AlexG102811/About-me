@@ -444,6 +444,89 @@ async function checkRemainingDashboardLayout(connection) {
   console.log(`Remaining admin dashboard layout passed at ${widths.join(" and ")}px.`);
 }
 
+async function checkLongContactDetailsLayout(connection) {
+  const name = "ExtraordinarilyLongSenderName".repeat(8);
+  const email = `${"verylongaddresscomponent".repeat(6)}@example.com`;
+  const message = "unbrokenmessagecontent".repeat(28);
+  const values = { name, email, message };
+  const rendered = await evaluate(connection, `(() => {
+    const card = document.querySelector(".admin-message-card");
+    if (!card) return false;
+    const senderName = card.querySelector(".admin-message-sender strong");
+    const senderEmail = card.querySelector(".admin-message-sender a");
+    const body = card.querySelector(".admin-message-body");
+    senderName.textContent = ${JSON.stringify(name)};
+    senderEmail.textContent = ${JSON.stringify(email)};
+    senderEmail.href = "mailto:" + ${JSON.stringify(email)};
+    body.textContent = ${JSON.stringify(message)};
+    return true;
+  })()`);
+  if (!rendered) throw new Error("The long-contact-details check needs a rendered inbox message.");
+
+  const widths = [320, 390];
+  for (const width of widths) {
+    await connection.command("Emulation.setDeviceMetricsOverride", {
+      width,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: true,
+    });
+    const layout = await evaluate(connection, `(() => {
+      const selectors = [
+        ".admin-message-sender strong",
+        ".admin-message-sender a",
+        ".admin-message-body",
+      ];
+      const targets = selectors.map((selector) => {
+        const element = document.querySelector(selector);
+        const rect = element.getBoundingClientRect();
+        return {
+          selector,
+          text: element.textContent,
+          left: rect.left,
+          right: rect.right,
+          scrollWidth: element.scrollWidth,
+          clientWidth: element.clientWidth,
+          scrollHeight: element.scrollHeight,
+          clientHeight: element.clientHeight,
+          overflowWrap: getComputedStyle(element).overflowWrap,
+        };
+      });
+      const card = document.querySelector(".admin-message-card");
+      return {
+        viewport: document.documentElement.clientWidth,
+        documentWidth: document.documentElement.scrollWidth,
+        cardScrollWidth: card.scrollWidth,
+        cardClientWidth: card.clientWidth,
+        targets,
+      };
+    })()`);
+
+    const issues = [];
+    if (layout.viewport !== width) issues.push(`layout viewport is ${layout.viewport}px`);
+    if (layout.documentWidth > layout.viewport) {
+      issues.push(`page scrolls horizontally (${layout.documentWidth}px versus ${layout.viewport}px)`);
+    }
+    if (layout.cardScrollWidth > layout.cardClientWidth + 1) issues.push("message card overflows");
+    for (const target of layout.targets) {
+      if (target.text !== values[target.selector === ".admin-message-sender strong" ? "name"
+        : target.selector === ".admin-message-sender a" ? "email" : "message"]) {
+        issues.push(`${target.selector} content was not fully rendered`);
+      }
+      if (target.left < -1 || target.right > layout.viewport + 1) {
+        issues.push(`${target.selector} extends outside the viewport`);
+      }
+      if (target.scrollWidth > target.clientWidth + 1) issues.push(`${target.selector} is clipped horizontally`);
+      if (target.scrollHeight > target.clientHeight + 1) issues.push(`${target.selector} is clipped vertically`);
+    }
+    if (issues.length) {
+      throw new Error(`Long contact details failed at ${width}px: ${issues.join("; ")}. ${JSON.stringify(layout)}`);
+    }
+  }
+  await connection.command("Emulation.clearDeviceMetricsOverride");
+  console.log(`Long contact details passed at ${widths.join(" and ")}px.`);
+}
+
 async function run() {
   const profilePath = fs.mkdtempSync(path.join(os.tmpdir(), "admin-backup-chromium-"));
   const browser = spawn(
@@ -540,6 +623,7 @@ async function run() {
 
     await checkRecoveryLayout(pageConnection);
     await checkRemainingDashboardLayout(pageConnection);
+    await checkLongContactDetailsLayout(pageConnection);
     await pageConnection.command("Emulation.setDeviceMetricsOverride", {
       width: 320,
       height: 900,

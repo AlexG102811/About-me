@@ -766,6 +766,10 @@ textarea {
   gap: 12px;
 }
 
+.admin-message-sender-details {
+  min-width: 0;
+}
+
 .admin-message-avatar {
   display: grid;
   width: 34px;
@@ -783,6 +787,7 @@ textarea {
   color: var(--ink);
   font-size: 14px;
   font-weight: 500;
+  overflow-wrap: anywhere;
 }
 
 .admin-message-sender a,
@@ -792,6 +797,10 @@ textarea {
   color: var(--muted);
   font-family: var(--mono);
   font-size: 10px;
+}
+
+.admin-message-sender a {
+  overflow-wrap: anywhere;
 }
 
 .admin-message-sender a:hover {
