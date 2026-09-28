@@ -385,11 +385,13 @@ class ContactInboxTests(unittest.TestCase):
         valid_envelope = json.loads(server.create_contact_raw_backup(original_bytes))
         altered_envelope = json.loads(json.dumps(valid_envelope))
         altered_envelope["integrity"]["value"] = "0" * 64
-        restore_backup = json.loads(server.create_contact_backup([self.record(id="browser-restore")]))
+        restore_backup = json.loads(server.create_contact_backup([
+            self.record(id="browser-restore", name="Original Backup Sender")
+        ]))
         replacement_restore_backup = json.loads(
             server.create_contact_backup([
-                self.record(id="browser-restore-replacement"),
-                self.record(id="browser-restore-replacement-2"),
+                self.record(id="browser-restore-replacement", name="Replacement Backup Sender"),
+                self.record(id="browser-restore-replacement-2", name="Second Replacement Sender"),
             ])
         )
 

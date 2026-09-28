@@ -184,6 +184,29 @@ async function selectBackup(connection, selector, backupPath) {
   await connection.command("DOM.setFileInputFiles", { files: [backupPath], nodeId });
 }
 
+async function waitForHeldPreview(connection, index) {
+  await waitFor(
+    () => evaluate(
+      connection,
+      `Boolean(window.__adminTestPreviewGate?.pending[${index}]?.ready)`,
+    ),
+    `preview response ${index + 1} to be held`,
+  );
+}
+
+async function releaseHeldPreview(connection, index) {
+  await evaluate(
+    connection,
+    `(async () => {
+      const pending = window.__adminTestPreviewGate?.pending[${index}];
+      if (!pending?.ready) throw new Error("The preview response was not ready to release.");
+      pending.release();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      return true;
+    })()`,
+  );
+}
+
 function expectedFileSize(bytes) {
   if (bytes < 1024) return `${bytes} byte${bytes === 1 ? "" : "s"}`;
   const units = ["KB", "MB"];
@@ -748,6 +771,20 @@ async function run() {
           const requestUrl = new URL(typeof input === "string" ? input : input.url, window.location.href);
           const requestMethod = String(init.method || (typeof input === "string" ? "GET" : input.method)).toUpperCase();
           const requestKey = requestMethod + " " + requestUrl.pathname;
+          const previewGate = window.__adminTestPreviewGate;
+          if (requestKey === "POST /api/messages/preview" && previewGate?.enabled) {
+            const index = previewGate.started++;
+            const responsePromise = originalFetch(input, init);
+            return new Promise((resolve, reject) => {
+              previewGate.pending[index] = { ready: false };
+              responsePromise.then((response) => {
+                previewGate.pending[index] = {
+                  ready: true,
+                  release: () => resolve(response),
+                };
+              }, reject);
+            });
+          }
           if (sessionStorage.getItem("__adminTestUnauthorized") !== requestKey) {
             return originalFetch(input, init);
           }
@@ -794,6 +831,10 @@ async function run() {
       deviceScaleFactor: 1,
       mobile: true,
     });
+    await evaluate(
+      pageConnection,
+      "window.__adminTestPreviewGate = { enabled: true, started: 0, pending: [] }",
+    );
     await selectBackup(pageConnection, "#restore-message-backup-file", restoreBackupPath);
     await assertSelectedFile(
       pageConnection,
@@ -802,10 +843,7 @@ async function run() {
       restoreBackupPath,
       "Restore",
     );
-    await waitFor(
-      () => evaluate(pageConnection, "document.querySelector('#restore-message-backup').disabled === false"),
-      "the selected restore backup to be previewed",
-    );
+    await waitForHeldPreview(pageConnection, 0);
     await selectBackup(pageConnection, "#restore-message-backup-file", replacementRestoreBackupPath);
     await assertSelectedFile(
       pageConnection,
@@ -814,10 +852,57 @@ async function run() {
       replacementRestoreBackupPath,
       "Replacement restore",
     );
+    const disabledBeforePreview = await evaluate(
+      pageConnection,
+      "document.querySelector('#restore-message-backup').disabled",
+    );
+    if (!disabledBeforePreview) {
+      throw new Error("Restore became enabled before the replacement backup had a valid preview.");
+    }
+    await waitForHeldPreview(pageConnection, 1);
+    await releaseHeldPreview(pageConnection, 0);
+    const stalePreviewState = await evaluate(pageConnection, `(() => ({
+      disabled: document.querySelector("#restore-message-backup").disabled,
+      summary: document.querySelector("#restore-message-backup-summary").textContent,
+      previewHidden: document.querySelector("#restore-message-backup-preview").hidden,
+    }))()`);
+    if (!stalePreviewState.disabled || stalePreviewState.summary || !stalePreviewState.previewHidden) {
+      throw new Error(
+        "The older backup preview changed restore state before the replacement preview was valid: "
+        + JSON.stringify(stalePreviewState),
+      );
+    }
+    await assertSelectedFile(
+      pageConnection,
+      "#restore-message-backup-file",
+      "#restore-message-backup-selection",
+      replacementRestoreBackupPath,
+      "Replacement restore after the older preview returned",
+    );
+    await releaseHeldPreview(pageConnection, 1);
     await waitFor(
       () => evaluate(pageConnection, "document.querySelector('#restore-message-backup').disabled === false"),
       "the replacement restore backup to be previewed",
     );
+    const replacementPreview = await evaluate(pageConnection, `(() => ({
+      summary: document.querySelector("#restore-message-backup-summary").textContent,
+      previewHidden: document.querySelector("#restore-message-backup-preview").hidden,
+      senders: document.querySelector("#restore-message-backup-sender-list").textContent,
+      disabled: document.querySelector("#restore-message-backup").disabled,
+    }))()`);
+    if (
+      replacementPreview.summary !== "Valid backup · 2 messages" ||
+      replacementPreview.previewHidden ||
+      replacementPreview.disabled ||
+      !replacementPreview.senders.includes("Replacement Backup Sender") ||
+      !replacementPreview.senders.includes("Second Replacement Sender") ||
+      replacementPreview.senders.includes("Original Backup Sender")
+    ) {
+      throw new Error(
+        `The replacement preview did not match the selected backup: ${JSON.stringify(replacementPreview)}.`,
+      );
+    }
+    await evaluate(pageConnection, "window.__adminTestPreviewGate.enabled = false");
 
     await selectBackup(pageConnection, "#extract-raw-backup-file", validBackupPath);
     await assertSelectedFile(
