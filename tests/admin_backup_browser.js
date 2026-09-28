@@ -444,6 +444,169 @@ async function checkRemainingDashboardLayout(connection) {
   console.log(`Remaining admin dashboard layout passed at ${widths.join(" and ")}px.`);
 }
 
+async function checkEnlargedTextLayout(connection) {
+  await evaluate(connection, `(() => {
+    const elements = Array.from(document.querySelectorAll("body *"));
+    window.__adminTextSizeTest = elements.map((element) => ({
+      element,
+      fontSize: element.style.getPropertyValue("font-size"),
+      priority: element.style.getPropertyPriority("font-size"),
+      computedSize: getComputedStyle(element).fontSize,
+    }));
+    for (const entry of window.__adminTextSizeTest) {
+      const size = parseFloat(entry.computedSize);
+      if (Number.isFinite(size) && size > 0) {
+        entry.element.style.setProperty("font-size", (size * 2) + "px", "important");
+      }
+    }
+  })()`);
+
+  const widths = [1280, 768];
+  const textSelectors = [
+    ".admin-section-label",
+    ".admin-heading-note",
+    ".admin-stat-label",
+    ".admin-stat-card small",
+    ".admin-card-heading h3",
+    ".admin-activity-row strong",
+    ".admin-note-card h3",
+    ".admin-note-card > p:not(.admin-section-label)",
+    ".admin-messages-summary",
+    ".admin-inbox-recovery-note",
+    ".admin-inbox-raw-extract p",
+    ".admin-inbox-file-label",
+    ".admin-message-filter",
+    ".admin-message-sender strong",
+    ".admin-message-sender a",
+    ".admin-message-body",
+    "#admin-profile-form label",
+    ".admin-preview-card h3",
+    ".admin-preview-card p:not(.admin-section-label)",
+    ".admin-page-row strong",
+    ".admin-page-row small",
+    ".admin-page-status",
+  ];
+  const actionSelectors = [
+    ".admin-nav a",
+    ".admin-top-actions a",
+    ".admin-stat-card a",
+    ".admin-dark-link",
+    "#refresh-messages",
+    ".admin-inbox-recovery button",
+    ".admin-message-filter",
+    ".admin-message-action",
+    "#admin-profile-form input",
+    "#admin-profile-form textarea",
+    "#admin-profile-form button",
+    ".admin-preview-card a",
+    ".admin-page-row",
+  ];
+
+  try {
+    for (const width of widths) {
+      await connection.command("Emulation.setDeviceMetricsOverride", {
+        width,
+        height: 1200,
+        deviceScaleFactor: 1,
+        mobile: false,
+      });
+      const layout = await evaluate(connection, `(() => {
+        const textTargets = ${JSON.stringify(textSelectors)}.flatMap((selector) =>
+          Array.from(document.querySelectorAll(selector)).map((element) => {
+            const rect = element.getBoundingClientRect();
+            return {
+              selector,
+              text: element.textContent?.trim().replace(/\\s+/g, " ").slice(0, 55) || "",
+              left: rect.left,
+              right: rect.right,
+              scrollWidth: element.scrollWidth,
+              clientWidth: element.clientWidth,
+              visible: rect.width > 0 && rect.height > 0 && getComputedStyle(element).visibility !== "hidden",
+            };
+          }),
+        );
+        const actions = ${JSON.stringify(actionSelectors)}.flatMap((selector) =>
+          Array.from(document.querySelectorAll(selector)).map((element) => {
+            const rect = element.getBoundingClientRect();
+            return {
+              selector,
+              text: element.textContent?.trim().replace(/\\s+/g, " ").slice(0, 45) || element.name || "",
+              left: rect.left,
+              right: rect.right,
+              visible: rect.width > 0 && rect.height > 0 && getComputedStyle(element).visibility !== "hidden",
+              disabled: Boolean(element.disabled),
+              isTextInput: element.matches("input"),
+              scrollWidth: element.scrollWidth,
+              clientWidth: element.clientWidth,
+            };
+          }),
+        );
+        const panels = [
+          ".admin-overview",
+          ".admin-messages-section",
+          ".admin-profile-section",
+          ".admin-pages-section",
+        ].map((selector) => {
+          const element = document.querySelector(selector);
+          return {
+            selector,
+            scrollWidth: element.scrollWidth,
+            clientWidth: element.clientWidth,
+          };
+        });
+        return {
+          viewport: document.documentElement.clientWidth,
+          documentWidth: document.documentElement.scrollWidth,
+          textTargets,
+          actions,
+          panels,
+        };
+      })()`);
+
+      const issues = [];
+      if (layout.viewport > width || layout.viewport < width - 20) {
+        issues.push(`layout viewport is unexpectedly ${layout.viewport}px for a ${width}px browser window`);
+      }
+      if (layout.documentWidth > layout.viewport) {
+        issues.push(`page scrolls horizontally (${layout.documentWidth}px versus ${layout.viewport}px)`);
+      }
+      for (const panel of layout.panels) {
+        if (panel.scrollWidth > panel.clientWidth + 1) issues.push(`${panel.selector} overflows`);
+      }
+      for (const target of layout.textTargets) {
+        if (!target.visible) issues.push(`${target.selector} is not visible`);
+        if (target.left < -1 || target.right > layout.viewport + 1) {
+          issues.push(`${target.selector} extends outside the viewport`);
+        }
+        if (target.scrollWidth > target.clientWidth + 1) {
+          issues.push(`${target.selector} text is clipped: ${target.text}`);
+        }
+      }
+      for (const action of layout.actions) {
+        if (!action.visible || action.left < -1 || action.right > layout.viewport + 1) {
+          issues.push(`${action.selector} is not fully visible: ${action.text}`);
+        }
+        if (!action.isTextInput && action.scrollWidth > action.clientWidth + 1) {
+          issues.push(`${action.selector} content is clipped: ${action.text}`);
+        }
+      }
+      if (issues.length) {
+        throw new Error(`Enlarged-text layout failed at ${width}px: ${issues.join("; ")}. ${JSON.stringify(layout)}`);
+      }
+    }
+    console.log(`200% enlarged-text admin layout passed at ${widths.join(" and ")}px.`);
+  } finally {
+    await connection.command("Emulation.clearDeviceMetricsOverride");
+    await evaluate(connection, `(() => {
+      for (const entry of window.__adminTextSizeTest || []) {
+        if (entry.fontSize) entry.element.style.setProperty("font-size", entry.fontSize, entry.priority);
+        else entry.element.style.removeProperty("font-size");
+      }
+      delete window.__adminTextSizeTest;
+    })()`);
+  }
+}
+
 async function checkLongContactDetailsLayout(connection) {
   const name = "ExtraordinarilyLongSenderName".repeat(8);
   const email = `${"verylongaddresscomponent".repeat(6)}@example.com`;
@@ -623,6 +786,7 @@ async function run() {
 
     await checkRecoveryLayout(pageConnection);
     await checkRemainingDashboardLayout(pageConnection);
+    await checkEnlargedTextLayout(pageConnection);
     await checkLongContactDetailsLayout(pageConnection);
     await pageConnection.command("Emulation.setDeviceMetricsOverride", {
       width: 320,
@@ -739,9 +903,14 @@ async function run() {
       await waitFor(
         () => evaluate(
           pageConnection,
-          "location.pathname === '/admin.html' && Boolean(document.querySelector('#extract-raw-backup-form'))",
+          "location.pathname === '/admin.html' && Boolean(document.querySelector('#extract-raw-backup-form'))"
+            + " && Boolean(document.querySelector('#refresh-messages'))",
         ),
         "successful sign-in to return to the admin dashboard",
+      );
+      await waitFor(
+        () => evaluate(pageConnection, "Boolean(document.querySelector('.admin-message-card'))"),
+        "the inbox to reload after signing in",
       );
 
       await expectUnauthorizedRedirect(pageConnection, "GET /api/messages", () => evaluate(

@@ -557,7 +557,7 @@ textarea {
 
 .admin-inbox-recovery {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 14px 24px;
   margin: 18px 0 28px;
   padding: 19px 21px;
@@ -582,12 +582,14 @@ textarea {
 .admin-inbox-recovery-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
 .admin-inbox-recovery-actions form {
   display: flex;
   align-items: flex-end;
+  flex-wrap: wrap;
   gap: 15px;
 }
 
@@ -1230,7 +1232,7 @@ textarea {
 
 .admin-page-row {
   display: grid;
-  grid-template-columns: 48px 1fr 90px 20px;
+  grid-template-columns: 48px minmax(0, 1fr) max-content max-content;
   gap: 17px;
   align-items: center;
   min-height: 79px;
@@ -1517,7 +1519,7 @@ textarea {
   }
 
   .admin-page-row {
-    grid-template-columns: 40px 1fr 20px;
+    grid-template-columns: 40px minmax(0, 1fr) max-content;
     gap: 12px;
   }
 
