@@ -410,46 +410,55 @@ class ContactInboxTests(unittest.TestCase):
             continue_path = temp_path / "session-expiration-continue"
             browser_script = Path(__file__).with_name("admin_backup_browser.js")
             chromium = shutil.which("chromium") or "/repl/tools/bin/chromium"
-            process = subprocess.Popen(
-                [
-                    shutil.which("node") or "node",
-                    str(browser_script),
-                    f"http://127.0.0.1:{self.http_server.server_port}",
-                    self.session_token,
-                    str(valid_path),
-                    str(altered_path),
-                    str(restore_path),
-                    str(replacement_restore_path),
-                    str(download_path),
-                    chromium,
-                    str(ready_path),
-                    str(continue_path),
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-            )
-            deadline = server.time.monotonic() + 60
-            try:
-                while not ready_path.exists() and process.poll() is None:
-                    if server.time.monotonic() >= deadline:
-                        self.fail("Browser did not reach the active dashboard before session expiration.")
-                    server.time.sleep(0.05)
+            test_password = "browser-test-only-password"
+            browser_env = {
+                "ADMIN_PASSWORD": test_password,
+                "HOME": str(Path.home()),
+                "PATH": os.environ.get("PATH", os.defpath),
+                "TMPDIR": os.environ.get("TMPDIR", temp_dir),
+            }
+            with patch.dict(os.environ, {"ADMIN_PASSWORD": test_password}):
+                process = subprocess.Popen(
+                    [
+                        shutil.which("node") or "node",
+                        str(browser_script),
+                        f"http://127.0.0.1:{self.http_server.server_port}",
+                        self.session_token,
+                        str(valid_path),
+                        str(altered_path),
+                        str(restore_path),
+                        str(replacement_restore_path),
+                        str(download_path),
+                        chromium,
+                        str(ready_path),
+                        str(continue_path),
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    env=browser_env,
+                )
+                deadline = server.time.monotonic() + 60
+                try:
+                    while not ready_path.exists() and process.poll() is None:
+                        if server.time.monotonic() >= deadline:
+                            self.fail("Browser did not reach the active dashboard before session expiration.")
+                        server.time.sleep(0.05)
 
-                if process.poll() is not None:
-                    stdout, stderr = process.communicate()
-                    self.fail(
-                        "Browser exited before the session-expiration check.\n"
-                        f"stdout:\n{stdout}\nstderr:\n{stderr}"
-                    )
+                    if process.poll() is not None:
+                        stdout, stderr = process.communicate()
+                        self.fail(
+                            "Browser exited before the session-expiration check.\n"
+                            f"stdout:\n{stdout}\nstderr:\n{stderr}"
+                        )
 
-                server.sessions[self.session_token] = server.time.time() - 1
-                continue_path.write_text("expired", encoding="utf-8")
-                stdout, stderr = process.communicate(timeout=60)
-            finally:
-                if process.poll() is None:
-                    process.kill()
-                    process.communicate()
+                    server.sessions[self.session_token] = server.time.time() - 1
+                    continue_path.write_text("expired", encoding="utf-8")
+                    stdout, stderr = process.communicate(timeout=60)
+                finally:
+                    if process.poll() is None:
+                        process.kill()
+                        process.communicate()
 
             self.assertEqual(
                 process.returncode,

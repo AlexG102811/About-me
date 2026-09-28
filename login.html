@@ -18,6 +18,7 @@
       <p class="auth-kicker"><span></span> Private workspace</p>
       <h1>Admin<br /><em>access.</em></h1>
       <p class="auth-lede">Enter the password to open the site dashboard.</p>
+      <p class="auth-error" role="status" data-session-expired hidden></p>
       <form class="auth-form" method="post" action="/login">
         <input type="hidden" name="next" value="/admin.html" />
         <input class="auth-visually-hidden" type="text" name="username" value="admin" autocomplete="username" tabindex="-1" aria-hidden="true" />
@@ -35,5 +36,12 @@
       </form>
       <a class="auth-back" href="index.html">← Back to portfolio</a>
     </main>
+    <script>
+      const expiredNotice = document.querySelector("[data-session-expired]");
+      if (new URLSearchParams(window.location.search).get("expired") === "1") {
+        expiredNotice.textContent = "Your admin session has expired. Sign in again to return to the dashboard.";
+        expiredNotice.hidden = false;
+      }
+    </script>
   </body>
 </html>

@@ -18,6 +18,7 @@ const [
   expiredSessionContinuePath,
 ] =
   process.argv.slice(2);
+const adminPassword = process.env.ADMIN_PASSWORD;
 
 if (
   ![
@@ -32,6 +33,9 @@ if (
   ].every(Boolean)
 ) {
   throw new Error("Expected the server URL, session token, backup files, download directory, and Chromium path.");
+}
+if (expiredSessionReadyPath && !adminPassword) {
+  throw new Error("Expected a test-only admin password for the expired-session sign-in check.");
 }
 if (Boolean(expiredSessionReadyPath) !== Boolean(expiredSessionContinuePath)) {
   throw new Error("Both session-expiration coordination paths must be provided together.");
@@ -565,7 +569,33 @@ async function run() {
         "new URL(location.href).searchParams.get('expired') === '1'",
       );
       if (!expirationNotice) throw new Error("The sign-in redirect did not identify the expired session.");
-      await delay(500);
+      const notice = await waitFor(
+        () => evaluate(pageConnection, `(() => {
+          const element = document.querySelector("[data-session-expired]");
+          return element && !element.hidden && element.getAttribute("role") === "status"
+            ? element.textContent.trim()
+            : "";
+        })()`),
+        "the accessible expired-session notice",
+      );
+      if (!/admin session has expired/i.test(notice) || !/sign in again/i.test(notice)) {
+        throw new Error(`The expired-session notice was unclear: ${notice}`);
+      }
+
+      await evaluate(
+        pageConnection,
+        `(() => {
+          document.querySelector("#password").value = ${JSON.stringify(adminPassword)};
+          document.querySelector(".auth-form").requestSubmit();
+        })()`,
+      );
+      await waitFor(
+        () => evaluate(
+          pageConnection,
+          "location.pathname === '/admin.html' && Boolean(document.querySelector('#extract-raw-backup-form'))",
+        ),
+        "successful sign-in to return to the admin dashboard",
+      );
     }
 
     const extractionRequests = requests.filter((url) => url === "/api/messages/extract-raw").length;
