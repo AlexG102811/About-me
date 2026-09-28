@@ -981,6 +981,22 @@ async function run() {
       await evaluate(
         pageConnection,
         `(() => {
+          document.querySelector("#password").value = "incorrect-browser-test-password";
+          document.querySelector(".auth-form").requestSubmit();
+        })()`,
+      );
+      await waitFor(
+        () => evaluate(pageConnection, `location.pathname === "/login" && (() => {
+          const notice = document.querySelector("[data-session-expired]");
+          const error = document.querySelector("[data-auth-error]");
+          return notice && !notice.hidden && /admin session has expired/i.test(notice.textContent)
+            && error && /password did not match/i.test(error.textContent);
+        })()`),
+        "the expired-session explanation and incorrect-password error to remain visible",
+      );
+      await evaluate(
+        pageConnection,
+        `(() => {
           document.querySelector("#password").value = ${JSON.stringify(adminPassword)};
           document.querySelector(".auth-form").requestSubmit();
         })()`,

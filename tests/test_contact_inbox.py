@@ -98,10 +98,11 @@ class ContactInboxTests(unittest.TestCase):
         *,
         body: str | None = None,
         authenticated: bool = False,
+        content_type: str = "application/json",
     ) -> tuple[int, dict[str, str], bytes]:
         headers = {"Accept": "application/json"}
         if body is not None:
-            headers["Content-Type"] = "application/json"
+            headers["Content-Type"] = content_type
         if authenticated:
             headers["Cookie"] = f"{server.SESSION_COOKIE}={self.session_token}"
 
@@ -216,6 +217,31 @@ class ContactInboxTests(unittest.TestCase):
         )
         self.assertEqual(status, 401)
         self.assertEqual(payload["error"], "Authentication required.")
+
+    def test_failed_sign_in_preserves_expired_session_marker(self) -> None:
+        server.login_attempts.clear()
+        form_body = urlencode({
+            "password": "incorrect-password",
+            "next": "/admin.html",
+            "expired": "1",
+        })
+
+        with patch.dict(os.environ, {"ADMIN_PASSWORD": "correct-password"}):
+            status, _headers, response_body = self.request_raw(
+                "POST",
+                "/login",
+                body=form_body,
+                content_type="application/x-www-form-urlencoded",
+            )
+
+        document = response_body.decode("utf-8")
+        self.assertEqual(status, 401)
+        self.assertIn('name="expired" value="1" data-session-expired-marker', document)
+        self.assertIn(
+            '<p class="auth-error" role="alert" data-auth-error>That password did not match.</p>',
+            document,
+        )
+        self.assertIn("Your admin session has expired.", document)
 
     def test_backup_requires_authentication_and_exports_stored_content(self) -> None:
         self.storage.contents = json.dumps([self.record()], indent=2)

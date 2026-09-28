@@ -21,6 +21,7 @@
       <p class="auth-error" role="status" data-session-expired hidden></p>
       <form class="auth-form" method="post" action="/login">
         <input type="hidden" name="next" value="/admin.html" />
+        <input type="hidden" name="expired" value="0" data-session-expired-marker />
         <input class="auth-visually-hidden" type="text" name="username" value="admin" autocomplete="username" tabindex="-1" aria-hidden="true" />
         <label for="password">Admin password</label>
         <input
@@ -38,7 +39,12 @@
     </main>
     <script>
       const expiredNotice = document.querySelector("[data-session-expired]");
-      if (new URLSearchParams(window.location.search).get("expired") === "1") {
+      const expiredMarker = document.querySelector("[data-session-expired-marker]");
+      if (
+        new URLSearchParams(window.location.search).get("expired") === "1"
+        || expiredMarker.value === "1"
+      ) {
+        expiredMarker.value = "1";
         expiredNotice.textContent = "Your admin session has expired. Sign in again to return to the dashboard.";
         expiredNotice.hidden = false;
       }

@@ -586,11 +586,17 @@ class SiteHandler(SimpleHTTPRequestHandler):
         form = parse_qs(body)
         password = form.get("password", [""])[0]
         next_path = safe_next_path(form.get("next", [None])[0])
+        expired_session = form.get("expired", ["0"])[0] == "1"
         address = client_address(self)
         now = time.time()
 
         if login_is_limited(address, now):
-            self.render_login_error("Too many attempts. Try again in a few minutes.", next_path, HTTPStatus.TOO_MANY_REQUESTS)
+            self.render_login_error(
+                "Too many attempts. Try again in a few minutes.",
+                next_path,
+                HTTPStatus.TOO_MANY_REQUESTS,
+                expired_session,
+            )
             return
 
         expected_password = os.environ.get("ADMIN_PASSWORD")
@@ -600,7 +606,12 @@ class SiteHandler(SimpleHTTPRequestHandler):
 
         if not hmac.compare_digest(password, expected_password):
             record_login_attempt(address, now)
-            self.render_login_error("That password did not match.", next_path, HTTPStatus.UNAUTHORIZED)
+            self.render_login_error(
+                "That password did not match.",
+                next_path,
+                HTTPStatus.UNAUTHORIZED,
+                expired_session,
+            )
             return
 
         token = secrets.token_urlsafe(32)
@@ -636,13 +647,24 @@ class SiteHandler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
 
-    def render_login_error(self, message: str, next_path: str, status: HTTPStatus) -> None:
+    def render_login_error(
+        self,
+        message: str,
+        next_path: str,
+        status: HTTPStatus,
+        expired_session: bool,
+    ) -> None:
         login_path = ROOT / "login.html"
         document = login_path.read_text(encoding="utf-8")
         safe_message = html.escape(message)
         marker = '<p class="auth-error" role="alert" data-auth-error></p>'
         replacement = f'<p class="auth-error" role="alert" data-auth-error>{safe_message}</p>'
         document = document.replace(marker, replacement)
+        expired_value = "1" if expired_session else "0"
+        document = document.replace(
+            '<input type="hidden" name="expired" value="0" data-session-expired-marker />',
+            f'<input type="hidden" name="expired" value="{expired_value}" data-session-expired-marker />',
+        )
         document = document.replace(
             '<input type="hidden" name="next" value="/admin.html" />',
             f'<input type="hidden" name="next" value="{html.escape(next_path, quote=True)}" />',
