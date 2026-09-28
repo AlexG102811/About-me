@@ -169,6 +169,12 @@ let backupPreviewSequence = 0;
 let previewedBackupFile = null;
 const maxContactBackupBytes = 25 * 1024 * 1024;
 
+const redirectToSignInIfUnauthorized = (response) => {
+  if (response.status !== 401) return false;
+  window.location.assign("/login.html?next=%2Fadmin.html&expired=1");
+  return true;
+};
+
 const formatBackupFileSize = (bytes) => {
   if (bytes < 1024) return `${bytes} byte${bytes === 1 ? "" : "s"}`;
   const units = ["KB", "MB"];
@@ -282,6 +288,7 @@ const updateMessage = async (message, action, payload, button) => {
       headers: { Accept: "application/json", "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+    if (redirectToSignInIfUnauthorized(response)) return;
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Unable to update message.");
     Object.assign(message, result.message);
@@ -420,6 +427,7 @@ const loadMessages = async () => {
 
   try {
     const response = await fetch("/api/messages", { headers: { Accept: "application/json" } });
+    if (redirectToSignInIfUnauthorized(response)) return;
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Unable to load messages.");
     allMessages = Array.isArray(data.messages) ? data.messages : [];
@@ -466,6 +474,7 @@ downloadMessageBackup?.addEventListener("click", async () => {
     const response = await fetch("/api/messages/backup", {
       headers: { Accept: "application/json" },
     });
+    if (redirectToSignInIfUnauthorized(response)) return;
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || "Unable to download the inbox backup.");
@@ -529,12 +538,9 @@ extractRawBackupForm?.addEventListener("submit", async (event) => {
       headers: { Accept: "application/octet-stream", "Content-Type": "application/json" },
       body: await backupFile.text(),
     });
+    if (redirectToSignInIfUnauthorized(response)) return;
     if (!response.ok) {
       const result = await response.json();
-      if (response.status === 401) {
-        window.location.assign("/login.html?next=%2Fadmin.html&expired=1");
-        return;
-      }
       throw new Error(result.error || "Unable to extract the damaged-inbox file.");
     }
 
@@ -589,6 +595,7 @@ restoreMessageBackupFile?.addEventListener("change", async () => {
       headers: { Accept: "application/json", "Content-Type": "application/json" },
       body: await backupFile.text(),
     });
+    if (redirectToSignInIfUnauthorized(response)) return;
     const result = await response.json();
     if (previewSequence !== backupPreviewSequence || restoreMessageBackupFile.files?.[0] !== backupFile) return;
     if (!response.ok) throw new Error(result.error || "Unable to preview this backup.");
@@ -644,6 +651,7 @@ restoreMessageBackupForm?.addEventListener("submit", async (event) => {
       headers: { Accept: "application/json", "Content-Type": "application/json" },
       body: await backupFile.text(),
     });
+    if (redirectToSignInIfUnauthorized(response)) return;
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Unable to restore the inbox.");
     if (inboxRecoveryStatus) {

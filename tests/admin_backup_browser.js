@@ -130,6 +130,50 @@ async function evaluate(connection, expression) {
   return result.result.value;
 }
 
+async function expectUnauthorizedRedirect(connection, requestKey, trigger) {
+  await evaluate(
+    connection,
+    `(() => {
+      sessionStorage.setItem("__adminTestUnauthorized", ${JSON.stringify(requestKey)});
+      sessionStorage.removeItem("__adminTestUnauthorizedObserved");
+    })()`,
+  );
+  await trigger();
+  await waitFor(
+    () => evaluate(
+      connection,
+      `location.pathname === "/login.html" && new URL(location.href).searchParams.get("expired") === "1"`,
+    ),
+    `${requestKey} to return to sign-in`,
+  );
+  const observedRequest = await evaluate(
+    connection,
+    `sessionStorage.getItem("__adminTestUnauthorizedObserved")`,
+  );
+  if (observedRequest !== requestKey) {
+    throw new Error(`Expected ${requestKey} to receive the simulated 401, received ${observedRequest || "no request"}.`);
+  }
+
+  await evaluate(
+    connection,
+    `(() => {
+      document.querySelector("#password").value = ${JSON.stringify(adminPassword)};
+      document.querySelector(".auth-form").requestSubmit();
+    })()`,
+  );
+  await waitFor(
+    () => evaluate(
+      connection,
+      `location.pathname === "/admin.html" && Boolean(document.querySelector("#admin-inbox-recovery-status"))`,
+    ),
+    "successful sign-in to return to the admin dashboard",
+  );
+  await waitFor(
+    () => evaluate(connection, `Boolean(document.querySelector(".admin-message-card"))`),
+    "the inbox to reload after signing in",
+  );
+}
+
 async function selectBackup(connection, selector, backupPath) {
   const { root } = await connection.command("DOM.getDocument");
   const { nodeId } = await connection.command("DOM.querySelector", {
@@ -451,6 +495,25 @@ async function run() {
       if (url.pathname === "/api/messages/extract-raw") extractionStatuses.push(response.status);
     });
     await pageConnection.command("Page.enable");
+    await pageConnection.command("Page.addScriptToEvaluateOnNewDocument", {
+      source: `(() => {
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = (input, init = {}) => {
+          const requestUrl = new URL(typeof input === "string" ? input : input.url, window.location.href);
+          const requestMethod = String(init.method || (typeof input === "string" ? "GET" : input.method)).toUpperCase();
+          const requestKey = requestMethod + " " + requestUrl.pathname;
+          if (sessionStorage.getItem("__adminTestUnauthorized") !== requestKey) {
+            return originalFetch(input, init);
+          }
+          sessionStorage.removeItem("__adminTestUnauthorized");
+          sessionStorage.setItem("__adminTestUnauthorizedObserved", requestKey);
+          return Promise.resolve(new Response(
+            JSON.stringify({ error: "Authentication required." }),
+            { status: 401, headers: { "Content-Type": "application/json" } },
+          ));
+        };
+      })();`,
+    });
     await pageConnection.command("Network.enable");
     await pageConnection.command("DOM.enable");
     await pageConnection.command("Network.setCookie", {
@@ -596,6 +659,39 @@ async function run() {
         ),
         "successful sign-in to return to the admin dashboard",
       );
+
+      await expectUnauthorizedRedirect(pageConnection, "GET /api/messages", () => evaluate(
+        pageConnection,
+        `document.querySelector("#refresh-messages").click()`,
+      ));
+      await expectUnauthorizedRedirect(
+        pageConnection,
+        "POST /api/messages/browser-baseline/read",
+        () => evaluate(
+          pageConnection,
+          `document.querySelector(".admin-message-card button").click()`,
+        ),
+      );
+      await expectUnauthorizedRedirect(pageConnection, "GET /api/messages/backup", () => evaluate(
+        pageConnection,
+        `document.querySelector("#download-message-backup").click()`,
+      ));
+      await expectUnauthorizedRedirect(pageConnection, "POST /api/messages/preview", () => (
+        selectBackup(pageConnection, "#restore-message-backup-file", restoreBackupPath)
+      ));
+
+      await selectBackup(pageConnection, "#restore-message-backup-file", restoreBackupPath);
+      await waitFor(
+        () => evaluate(pageConnection, `document.querySelector("#restore-message-backup").disabled === false`),
+        "the backup to be previewed before the unauthorized restore check",
+      );
+      await expectUnauthorizedRedirect(pageConnection, "POST /api/messages/restore", () => evaluate(
+        pageConnection,
+        `(() => {
+          window.confirm = () => true;
+          document.querySelector("#restore-message-backup-form").requestSubmit();
+        })()`,
+      ));
     }
 
     const extractionRequests = requests.filter((url) => url === "/api/messages/extract-raw").length;
